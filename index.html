@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Preview & Performance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:100vh}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.header{background:#fff;padding:0 32px;position:sticky;top:0;z-index:100;box-shadow:0 1px 12px rgba(0,0,0,.08);border-bottom:1px solid #eee;overflow:visible}
+.header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:90px}
+.logo{display:flex;align-items:center}
+.logo-wordmark{display:flex;align-items:center;gap:10px}
+.logo-wc{color:#fff;font-family:'Inter',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px}
+.logo-x{color:rgba(255,255,255,.5);font-size:13px;font-weight:300}
+.logo-dc{color:#f7c948;font-family:'Inter',sans-serif;font-size:14px;letter-spacing:.5px}
+.header-meta{font-size:12px;color:#aaa;font-family:'Inter',sans-serif;}
+.filter-bar{background:#fff;border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.filter-bar select,.filter-bar input[type=text]{padding:9px 14px;border-radius:10px;border:1.5px solid #e8e8e8;font-size:14px;outline:none;background:#fff;color:#1a1a2e;font-family:'Inter',sans-serif;cursor:pointer}
+.filter-bar input[type=text]{min-width:200px}
+.btn{padding:10px 20px;border-radius:10px;border:none;font-weight:600;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-dark{background:linear-gradient(135deg,#1a1a2e,#2d2d54);color:#fff}
+.btn-reload{background:#f5f5f5;color:#555;border:1.5px solid #e8e8e8}
+.count-badge{font-size:13px;color:#bbb;font-family:'Inter',sans-serif;margin-left:auto}
+.main{max-width:1400px;margin:0 auto;padding:28px 24px}
+.page-title{font-family:'Inter',sans-serif;font-size:34px;font-weight:800;color:#1a1a2e;margin-bottom:8px;letter-spacing:-.8px}
+.page-sub{color:#aaa;font-size:13px;margin-bottom:22px}
+.group-section{margin-bottom:36px;animation:fadeIn .4s ease}
+.group-header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1a1a2e;padding-bottom:8px;margin-bottom:14px}
+.group-title{font-family:'Inter',sans-serif;font-size:18px;font-weight:700;color:#1a1a2e;letter-spacing:-.3px}
+.group-count{font-size:13px;color:#aaa;font-family:'Inter',sans-serif;margin-left:10px}
+.toggle-table-btn{font-size:12px;color:#aaa;background:none;border:1px solid #e8e8e8;border-radius:8px;padding:4px 12px;cursor:pointer;font-family:'Inter',sans-serif}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.card{background:#fff;border-radius:12px;overflow:hidden;border:1.5px solid #eee;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.card.top{border-color:#f7b731;box-shadow:0 0 0 2px #f7b73144}
+.card-img{position:relative;padding-top:68%;background:#f2efe9;overflow:hidden;cursor:zoom-in}
+.card-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s}
+.card-img img.ok{opacity:1}
+.placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.spinner{width:22px;height:22px;border:2.5px solid #e0dbd4;border-top-color:#ff6b35;border-radius:50%;animation:spin .8s linear infinite}
+.ch-badge{position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:'Inter',sans-serif;color:#fff}
+.zoom-hint{position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.35);border-radius:5px;padding:1px 6px;font-size:9px;color:rgba(255,255,255,.8)}
+.card-body{padding:10px 12px}
+.card-name{font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:7px;line-height:1.4}
+.primary-kpi{text-align:center;padding:7px 4px;border-radius:8px;margin-bottom:6px}
+.kpi-label{font-size:10px;font-weight:500;color:#999;font-family:'Inter',sans-serif;display:block;letter-spacing:.5px;text-transform:uppercase}
+.kpi-value{font-size:22px;font-weight:700;font-family:'Inter',sans-serif;color:#1a6eb5;display:block;letter-spacing:-.5px}
+.other-kpis{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px}
+.kpi-chip{font-family:'Inter',sans-serif;background:#f8f8f8;border-radius:5px;padding:3px 6px}
+.kpi-chip-lbl{opacity:.6;display:block;font-size:9px;font-weight:500;letter-spacing:.4px;text-transform:uppercase}
+.kpi-chip-val{font-weight:600;font-size:12px}
+.card-note{font-size:12px;margin-top:4px;line-height:1.4}
+.card-note.bad{color:#e55;font-weight:700}
+.card-note.ok2{color:#888}
+.table-wrap{overflow-x:auto;margin-top:14px;display:none}
+.table-wrap.open{display:block}
+.stbl{width:100%;border-collapse:collapse;font-size:13px;font-family:'Inter',sans-serif;}
+.stbl th{background:#22c55e;color:#fff;padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.stbl th:first-child{text-align:left}
+.stbl th:not(:first-child){text-align:right}
+.stbl td{padding:6px 12px;border-bottom:1px solid #f0f0f0}
+.stbl td:first-child{font-family:'Inter',sans-serif;font-weight:600;color:#1a1a2e;text-align:left}
+.stbl td:not(:first-child){text-align:right;color:#555}
+.stbl .ctr{font-weight:700;color:#1a6eb5}
+.stbl tr:nth-child(even) td{background:#f9fafb}
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}
+#lb.open{display:flex}
+#lb img{max-width:90vw;max-height:88vh;border-radius:12px;object-fit:contain}
+#lb-x{position:absolute;top:20px;right:24px;color:#fff;font-size:28px;cursor:pointer}
+.state-box{text-align:center;padding:80px 20px;color:#ccc}
+.state-box .icon{font-size:48px;margin-bottom:12px}
+.err-box{background:#fff0f0;border:1.5px solid #ffc0c0;border-radius:12px;padding:20px 24px;margin-bottom:20px;font-size:13px;color:#c00;line-height:1.8}
+.err-box b{display:block;font-size:15px;margin-bottom:8px}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <img src="https://drive.google.com/thumbnail?id=1G98L0-prZAEiqGHhAVRJyVDiE1zfL2-Q&sz=w400" alt="Web Connection" style="height:42px;object-fit:contain;">
+      <span style="color:#ccc;font-size:18px;font-weight:200;margin:0 14px">×</span>
+      <img src="https://drive.google.com/thumbnail?id=1YJ5wzlWix2qYTYoyx1LndTtCrL67AfxL&sz=w300" alt="Diamond Cliff" style="height:100px;object-fit:contain;margin-top:-10px;">
+    </div>
+    <span class="header-meta" id="last-updated"></span>
+  </div>
+</div>
+
+<div id="lb" onclick="closeLB()">
+  <span id="lb-x" onclick="closeLB()">✕</span>
+  <img id="lb-img" src="" alt=""/>
+</div>
+
+<div class="main">
+  <h1 class="page-title">Creative Preview & Performance</h1>
+
+  <div class="filter-bar">
+    <input type="text" id="search" placeholder="🔍 Search..." oninput="render()">
+    <select id="fy" onchange="render()"><option value="">All Years</option></select>
+    <select id="fm" onchange="render()">
+      <option value="">All Months</option>
+      <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+      <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+      <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+      <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+    </select>
+    <select id="fc" onchange="render()"><option value="">All Channels</option></select>
+    <span class="count-badge" id="cnt"></span>
+    <button class="btn btn-reload" onclick="loadData()">↻ Refresh</button>
+    <button class="btn btn-dark" onclick="exportPDF()">📄 Export PDF</button>
+  </div>
+  <div id="app"></div>
+</div>
+
+<script>
+const SHEET_ID  = "1F9Qcypy53pYKz5Y-V_MAKzudYErN6B9g";
+const SHEET_GID = "512478058";
+
+const CH={Facebook:"#1877f2",Instagram:"#e1306c",Google:"#ea4335",YouTube:"#ff0000",TikTok:"#010101",Line:"#06c755","Twitter/X":"#000",Other:"#888"};
+const MO=["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+let DATA=[];
+
+function ctrBg(v){const n=parseFloat(String(v||"").replace("%",""));if(isNaN(n))return"transparent";if(n>=5)return"#f7b731";if(n>=3)return"#ffd97d";if(n>=2)return"#fff3cd";return"transparent";}
+function thumb(url){if(!url)return"";const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?`https://drive.google.com/thumbnail?id=${m[1]}&sz=w600`:"";}
+
+async function loadData(){
+  document.getElementById("app").innerHTML=`<div class="state-box"><div class="spinner" style="margin:0 auto 12px;width:36px;height:36px;border-width:3px"></div><p>Loading from Google Sheet...</p></div>`;
+  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`;
+  try{
+    const res=await fetch(url);
+    const txt=await res.text();
+    const json=JSON.parse(txt.replace(/^[^{]+/,"").replace(/\);?\s*$/,""));
+    DATA=parseGviz(json);
+    document.getElementById("last-updated").textContent="Updated "+new Date().toLocaleTimeString("en-GB");
+    buildFilters();
+    render();
+  }catch(e){
+    document.getElementById("app").innerHTML=`<div class="err-box"><b>⚠️ Failed to load</b>Please check:<br>1. Sheet is public (Share → Anyone with link → Viewer)<br>2. Sheet tab name must be "Creative Data"<br>3. Try refreshing again<br><br><small style="color:#aaa">${e.message}</small></div>`;
+  }
+}
+
+function parseGviz(json){
+  const rows=json.table.rows;
+  const result=[];
+  for(const row of rows){
+    const v=row.c||[];
+    const get=i=>{
+      const cell=v[i];
+      if(!cell||cell.v===null||cell.v===undefined)return"";
+      if(cell.f!==undefined&&cell.f!==null&&cell.f!=="")return String(cell.f);
+      return String(cell.v);
+    };
+    const m=parseInt(get(0));
+    if(isNaN(m)||m<1||m>12)continue;
+    if(!get(3)&&!get(2))continue;
+    result.push({
+      Month:get(0),Year:get(1),"Campaign Group":get(2),
+      "Creative Name":get(3),Channel:get(4),"Drive Link":get(5),
+      "CTR (%)":get(6),"CPC (฿)":get(7),"CPM (฿)":get(8),
+      ROAS:get(9),Impressions:get(10),Clicks:get(11),
+      "Spend (฿)":get(12),"Status / Note":get(13),"Uploaded By":get(14),
+    });
+  }
+  const seen=new Set();
+  return result.filter(r=>{
+    const key=`${r["Creative Name"]}|${r.Month}|${r.Year}|${r["Campaign Group"]}|${r.Channel}`;
+    if(seen.has(key))return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function buildFilters(){
+  const years=[...new Set(DATA.map(d=>d.Year).filter(Boolean))].sort().reverse();
+  const chs=[...new Set(DATA.map(d=>d.Channel).filter(Boolean))].sort();
+  document.getElementById("fy").innerHTML='<option value="">All Years</option>'+years.map(y=>`<option>${y}</option>`).join("");
+  document.getElementById("fc").innerHTML='<option value="">All Channels</option>'+chs.map(c=>`<option>${c}</option>`).join("");
+}
+
+function filtered(){
+  const s=document.getElementById("search").value.toLowerCase();
+  const y=document.getElementById("fy").value;
+  const m=document.getElementById("fm").value;
+  const c=document.getElementById("fc").value;
+  return DATA.filter(d=>{
+    if(y&&d.Year!==y)return false;
+    if(m&&d.Month!==m)return false;
+    if(c&&d.Channel!==c)return false;
+    if(s&&!(d["Creative Name"]||"").toLowerCase().includes(s)&&!(d["Campaign Group"]||"").toLowerCase().includes(s))return false;
+    return true;
+  });
+}
+
+function render(){
+  const data=filtered();
+  document.getElementById("cnt").textContent=data.length+" creatives";
+  const groups={};
+  data.forEach(d=>{const g=d["Campaign Group"]||"Ungrouped";if(!groups[g])groups[g]=[];groups[g].push(d);});
+  const app=document.getElementById("app");
+  if(!data.length){app.innerHTML=`<div class="state-box"><div class="icon">📭</div><p>No creatives found</p></div>`;return;}
+  app.innerHTML=Object.entries(groups).map(([g,items])=>renderGroup(g,items)).join("");
+  lazyLoad();
+}
+
+function renderGroup(g,items){
+  const id="g"+Date.now()+Math.random().toString(36).slice(2);
+  const cards=items.map(renderCard).join("");
+  const trows=items.map(d=>{
+    const ctr=d["CTR (%)"]||"—";
+    return `<tr><td>${d["Creative Name"]||"—"}</td><td>${d["Spend (฿)"]||"—"}</td><td>${d.Impressions||"—"}</td><td>${d["CPM (฿)"]||"—"}</td><td>${d.Clicks||"—"}</td><td>${d["CPC (฿)"]||"—"}</td><td class="ctr" style="background:${ctrBg(ctr)}">${ctr}</td></tr>`;
+  }).join("");
+  return `<div class="group-section">
+    <div class="group-header">
+      <div><span class="group-title">${g}</span><span class="group-count">${items.length} creatives</span></div>
+      <button class="toggle-table-btn" onclick="toggleTbl('${id}',this)">▼ Show KPI Table</button>
+    </div>
+    <div class="cards-grid">${cards}</div>
+    <div class="table-wrap" id="${id}">
+      <table class="stbl"><thead><tr><th>Creative</th><th>Spend</th><th>Impressions</th><th>CPM</th><th>Clicks</th><th>CPC</th><th>CTR</th></tr></thead>
+      <tbody>${trows}</tbody></table>
+    </div>
+  </div>`;
+}
+
+function renderCard(d){
+  const ctr=d["CTR (%)"]||"";
+  const t=thumb(d["Drive Link"]||"");
+  const note=d["Status / Note"]||"";
+  const isTop=parseFloat(ctr.replace("%",""))>=5;
+  const chColor=CH[d.Channel]||"#888";
+  const others=[["CPC",d["CPC (฿)"]],["CPM",d["CPM (฿)"]],["Imp.",d.Impressions],["Spend",d["Spend (฿)"]]].filter(([,v])=>v).slice(0,4)
+    .map(([k,v])=>`<div class="kpi-chip"><span class="kpi-chip-lbl">${k}</span><span class="kpi-chip-val">${v}</span></div>`).join("");
+  return `<div class="card${isTop?" top":""}">
+    <div class="card-img" onclick="openLB('${t}')">
+      <div class="placeholder"><div class="spinner"></div></div>
+      ${t?`<img data-src="${t}" alt="${d["Creative Name"]}" onload="this.classList.add('ok');this.previousElementSibling.style.display='none'" onerror="this.style.display='none'">`:""}
+      ${d.Channel?`<div class="ch-badge" style="background:${chColor}cc">${d.Channel}</div>`:""}
+      <div class="zoom-hint">🔍</div>
+    </div>
+    <div class="card-body">
+      <div class="card-name">${d["Creative Name"]||"—"}</div>
+      ${ctr?`<div class="primary-kpi" style="background:${ctrBg(ctr)}"><span class="kpi-label">CTR</span><span class="kpi-value">${ctr}</span></div>`:""}
+      ${others?`<div class="other-kpis">${others}</div>`:""}
+      ${note?`<div class="card-note ${note.toLowerCase().includes("pause")?"bad":"ok2"}">${note}</div>`:""}
+    </div>
+  </div>`;
+}
+
+function lazyLoad(){
+  const imgs=document.querySelectorAll("img[data-src]");
+  if(!("IntersectionObserver" in window)){imgs.forEach(i=>i.src=i.dataset.src);return;}
+  const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.src=e.target.dataset.src;obs.unobserve(e.target);}});},{rootMargin:"300px"});
+  imgs.forEach(i=>obs.observe(i));
+}
+
+function toggleTbl(id,btn){
+  const el=document.getElementById(id);
+  el.classList.toggle("open");
+  btn.textContent=el.classList.contains("open")?"▲ Hide Table":"▼ Show KPI Table";
+}
+
+function openLB(src){if(!src)return;document.getElementById("lb-img").src=src;document.getElementById("lb").classList.add("open");}
+function closeLB(){document.getElementById("lb").classList.remove("open");}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLB();});
+
+function exportPDF(){
+  const data=filtered();
+  if(!data.length){alert("No data");return;}
+  const fy=document.getElementById("fy").value||"All Years";
+  const fm=document.getElementById("fm").value;
+  const label=[fy,fm?MO[parseInt(fm)]:"All Months"].join(" · ");
+  const groups={};
+  data.forEach(d=>{const g=d["Campaign Group"]||"Ungrouped";if(!groups[g])groups[g]=[];groups[g].push(d);});
+  const body=Object.entries(groups).map(([g,items])=>{
+    const cards=items.map(d=>{
+      const ctr=d["CTR (%)"]||"";
+      const t=thumb(d["Drive Link"]||"");
+      const others=[["CPC",d["CPC (฿)"]],["CPM",d["CPM (฿)"]],["Imp.",d.Impressions],["Spend",d["Spend (฿)"]]].filter(([,v])=>v).slice(0,4)
+        .map(([k,v])=>`<span class="kpi"><span class="kl">${k}</span> ${v}</span>`).join("");
+      return `<div class="card">${t?`<div class="iw"><img src="${t}" onerror="this.style.display='none'"/></div>`:"<div class='iw'></div>"}
+        <div class="bd"><div class="nm">${d["Creative Name"]||"—"}</div>
+        ${ctr?`<div class="pk" style="background:${ctrBg(ctr)}"><span class="kl">CTR</span><b>${ctr}</b></div>`:""}
+        ${others?`<div class="kpis">${others}</div>`:""}
+        ${d["Status / Note"]?`<div class="nt">${d["Status / Note"]}</div>`:""}</div></div>`;
+    }).join("");
+    return `<div class="grp"><div class="gt">${g}</div><div class="grid">${cards}</div></div>`;
+  }).join("");
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;padding:26px;color:#1a1a2e}
+  .hdr{margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #1a1a2e}
+  h1{font-size:20px;font-weight:800;margin-bottom:3px}.meta{font-size:11px;color:#aaa}
+  .grp{margin-bottom:22px}.gt{font-size:14px;font-weight:700;border-bottom:2px solid #1a1a2e;padding-bottom:5px;margin-bottom:10px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .card{border:1px solid #eee;border-radius:9px;overflow:hidden;break-inside:avoid}
+  .iw{width:100%;padding-top:65%;position:relative;background:#f5f3f0;overflow:hidden}
+  .iw img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .bd{padding:7px 9px}.nm{font-size:10px;font-weight:600;margin-bottom:5px;line-height:1.3}
+  .pk{text-align:center;padding:4px;border-radius:5px;margin-bottom:4px}
+  .pk .kl{font-size:9px;color:#888;display:block}.pk b{font-size:14px;color:#1a6eb5;display:block}
+  .kpis{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px}
+  .kpi{background:#f8f8f8;border-radius:4px;padding:2px 5px;font-size:9px;color:#555}
+  .kl{opacity:.55}.nt{font-size:9px;color:#e55;font-weight:700;margin-top:3px}
+  @media print{.card{break-inside:avoid}.grp{break-inside:avoid}}</style></head><body>
+  <div class="hdr"><h1>Creative Performance Report</h1>
+  <div class="meta">${label} · ${data.length} creatives · ${new Date().toLocaleDateString("en-GB",{year:"numeric",month:"long",day:"numeric"})}</div></div>
+  ${body}<script>window.onload=()=>window.print()<\/script></body></html>`;
+  const w=window.open("","_blank");w.document.write(html);w.document.close();
+}
+
+loadData();
+</script>
+</body>
+</html>

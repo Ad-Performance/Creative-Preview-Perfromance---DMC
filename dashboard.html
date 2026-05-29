@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:100vh}
+body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:100vh;font-size:14px}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
@@ -38,7 +38,7 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
 .btn-dark{background:linear-gradient(135deg,#1a1a2e,#2d2d54);color:#fff}
 .btn-reload{background:#f5f5f5;color:#555;border:1.5px solid #e8e8e8}
 .count-badge{font-size:13px;color:#bbb;margin-left:auto}
-.page-title{font-size:34px;font-weight:800;color:#1a1a2e;margin-bottom:8px;letter-spacing:-.8px}
+.page-title{font-size:36px;font-weight:800;color:#1a1a2e;margin-bottom:8px;letter-spacing:-.8px}
 .page-sub{color:#aaa;font-size:13px;margin-bottom:22px}
 .group-section{margin-bottom:36px;animation:fadeIn .4s ease}
 .group-header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1a1a2e;padding-bottom:8px;margin-bottom:14px}
@@ -93,24 +93,24 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
 .ctab.active{background:#1a1a2e;color:#fff;font-weight:600}
 .ctab:hover:not(.active){background:#f5f5f5;color:#555}
 .cview{display:none}.cview.active{display:block;animation:fadeIn .3s ease}
-.kstrip{display:grid;grid-template-columns:repeat(9,1fr);gap:10px;margin-bottom:20px}
-.kpi{background:#fff;border-radius:12px;padding:14px 16px;border:1.5px solid #eee;transition:box-shadow .2s}
+.kstrip{display:grid;grid-template-columns:repeat(9,1fr);gap:12px;margin-bottom:22px}
+.kpi{background:#fff;border-radius:14px;padding:18px 18px;border:1.5px solid #eee;transition:box-shadow .2s}
 .kpi:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
-.klabel{font-size:10px;color:#bbb;margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
-.kval{font-size:18px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
-.g75{display:grid;grid-template-columns:7fr 5fr;gap:14px;margin-bottom:14px}
-.ccard{background:#fff;border-radius:12px;padding:18px 20px;border:1.5px solid #eee}
-.ctitle{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.klabel{font-size:11px;color:#bbb;margin-bottom:6px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.kval{font-size:20px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px}
+.g75{display:grid;grid-template-columns:7fr 5fr;gap:18px;margin-bottom:18px}
+.ccard{background:#fff;border-radius:14px;padding:22px 24px;border:1.5px solid #eee}
+.ctitle{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:16px;display:flex;align-items:center;gap:8px}
 .csub{font-size:11px;color:#bbb;font-weight:400;margin-left:auto}
 .mini-s{background:#f7f5f2;border-radius:10px;padding:10px 14px}
-.mini-s .klabel{color:#bbb}.mini-s .kval{font-size:14px}
+.mini-s .klabel{color:#bbb}.mini-s .kval{font-size:15px}
 .slbl{font-size:10px;font-weight:700;letter-spacing:.1em;color:#bbb;text-transform:uppercase;margin-bottom:12px}
-.tbl{width:100%;border-collapse:collapse;font-size:12px}
-.tbl th{color:#bbb;font-weight:700;text-align:right;padding:8px 10px;border-bottom:2px solid #f0f0f0;white-space:nowrap;font-size:10px;letter-spacing:.5px;text-transform:uppercase}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{color:#bbb;font-weight:700;text-align:right;padding:9px 12px;border-bottom:2px solid #f0f0f0;white-space:nowrap;font-size:11px;letter-spacing:.3px;text-transform:uppercase}
 .tbl th.l{text-align:left}
-.tbl td{padding:9px 10px;color:#1a1a2e;text-align:right;border-bottom:1px solid #f5f5f5}
+.tbl td{padding:11px 12px;color:#1a1a2e;text-align:right;border-bottom:1px solid #f5f5f5}
 .tbl td.l{text-align:left;color:#555;font-weight:600}
 .tbl .tot td{font-weight:800;color:#1a1a2e;border-top:2px solid #f0f0f0;border-bottom:none;background:#f9fafb}
 .tbl tr:not(.tot):hover td{background:#fafaf9}
@@ -196,6 +196,12 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
     <p class="page-sub">Diamond Cliff Resort & Spa · <span id="period-label">Oct 2025 → Apr 2026</span></p>
 
     <div class="filter-bar">
+      <select id="camp-channel" onchange="campUpdateRange()" style="min-width:140px">
+        <option value="">All channels</option>
+      </select>
+      <select id="camp-campaign" onchange="campUpdateRange()" style="min-width:160px">
+        <option value="">All campaigns</option>
+      </select>
       <select id="sm" onchange="campUpdateRange()">
         <option value="0">Oct 2025</option><option value="1">Nov 2025</option><option value="2">Dec 2025</option>
         <option value="3">Jan 2026</option><option value="4">Feb 2026</option><option value="5">Mar 2026</option>
@@ -317,7 +323,7 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
         <div class="ccard">
           <div class="ctitle">Revenue by market</div>
           <div class="donut-row">
-            <div style="position:relative;width:140px;height:140px;flex-shrink:0"><canvas id="geoDonut">.</canvas></div>
+            <div style="position:relative;width:160px;height:160px;flex-shrink:0"><canvas id="geoDonut">.</canvas></div>
             <div class="donut-legend" id="geo-donut-legend" style="min-width:120px"></div>
           </div>
           <div style="margin-top:24px">
@@ -461,9 +467,24 @@ const CAMP_SHEET_ID = "1F9Qcypy53pYKz5Y-V_MAKzudYErN6B9g";
 const CAMP_GID      = "277450834";
 const ATTR_GID      = "578276760";
 
-const MONTHS    = ['Oct 2025','Nov 2025','Dec 2025','Jan 2026','Feb 2026','Mar 2026','Apr 2026'];
-const MONTH_KEYS= ['10-2025','11-2025','12-2025','1-2026','2-2026','3-2026','4-2026'];
-const DONUT_COLORS = ['#1a1a2e','#2d6a4f','#52a07a','#8fc4a8','#C4982A','#E4C97A','#aaaaaa'];
+// Dynamic months — built from CAMP_DATA after load
+let MONTHS=[], MONTH_KEYS=[];
+const MON_NAMES=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function buildMonths(){
+  const keys=[...new Set(CAMP_DATA.map(r=>`${r.month}-${r.year}`))];
+  keys.sort((a,b)=>{const[am,ay]=a.split('-').map(Number);const[bm,by]=b.split('-').map(Number);return ay!==by?ay-by:am-bm;});
+  MONTH_KEYS=keys;
+  MONTHS=keys.map(k=>{const[m,y]=k.split('-').map(Number);return MON_NAMES[m]+' '+y;});
+  // Rebuild selects
+  ['sm','em'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    const prev=sel.value;
+    sel.innerHTML=MONTHS.map((l,i)=>`<option value="${i}">${l}</option>`).join('');
+    sel.value=id==='em'?MONTHS.length-1:0;
+  });
+}
+const DONUT_COLORS = ['#1a1a2e','#C4982A','#2d6a4f','#E4C97A','#52a07a','#8fc4a8','#b0b0a0','#d4a853','#4a8a6a','#888870'];
 
 let CAMP_DATA=[], ATTR_DATA=[], tC=null, bC=null, geoC=null, c1C=null, c2C=null, c3C=null;
 let campLoaded=false, chartsInited=false;
@@ -512,6 +533,14 @@ async function campLoadData(){
       get room_nights(){ return this.bookings * this.avg_nights; }
     })).filter(r=>r.book_month&&r.book_year&&r.country&&r.revenue>0);
     campLoaded=true;
+    buildMonths();
+    // Build channel & campaign filters
+    const chans=[...new Set(CAMP_DATA.map(r=>r.channel))].sort();
+    const camps=[...new Set(CAMP_DATA.map(r=>r.campaign))].sort();
+    const chSel=document.getElementById('camp-channel');
+    if(chSel) chSel.innerHTML='<option value="">All channels</option>'+chans.map(c=>`<option>${c}</option>`).join('');
+    const caSel=document.getElementById('camp-campaign');
+    if(caSel) caSel.innerHTML='<option value="">All campaigns</option>'+camps.map(c=>`<option>${c}</option>`).join('');
     campUpdateRange();
     campRenderGeo();
     campRenderHeatmaps();
@@ -532,7 +561,9 @@ function campGetD(){
   return MONTHS.slice(s,e+1).map((l,idx)=>{
     const i=s+idx;
     const[mo,yr]=MONTH_KEYS[i].split('-').map(Number);
-    const rows=CAMP_DATA.filter(r=>r.month===mo&&r.year===yr);
+    const selCh2=document.getElementById('camp-channel')?.value||'';
+    const selCa2=document.getElementById('camp-campaign')?.value||'';
+    const rows=CAMP_DATA.filter(r=>r.month===mo&&r.year===yr&&(!selCh2||r.channel===selCh2)&&(!selCa2||r.campaign===selCa2));
     const tS=rows.reduce((a,r)=>a+r.spend,0);
     const tI=rows.reduce((a,r)=>a+r.imp,0);
     const tCl=rows.reduce((a,r)=>a+r.clicks,0);
@@ -589,20 +620,54 @@ function campRenderObjSummary(){
   const cv=rows.filter(r=>r.objective==='Conversion');
   const brS=br.reduce((a,r)=>a+r.spend,0),brI=br.reduce((a,r)=>a+r.imp,0),brCl=br.reduce((a,r)=>a+r.clicks,0);
   const cvS=cv.reduce((a,r)=>a+r.spend,0),cvB=cv.reduce((a,r)=>a+r.booking,0),cvR=cv.reduce((a,r)=>a+r.revenue,0);
+  const brCtr=brI>0?((brCl/brI)*100).toFixed(2)+'%':'—';
+
+  // Channel breakdowns
+  const brChans=[...new Set(br.map(r=>r.channel))];
+  const cvChans=[...new Set(cv.map(r=>r.channel))];
+
+  const brChanRows=brChans.map(ch=>{
+    const cr=br.filter(r=>r.channel===ch);
+    const cS=cr.reduce((a,r)=>a+r.spend,0),cCl=cr.reduce((a,r)=>a+r.clicks,0),cI=cr.reduce((a,r)=>a+r.imp,0);
+    const ctr=cI>0?((cCl/cI)*100).toFixed(2)+'%':'—';
+    return `<tr><td class="l">${ch}</td><td>${f(cS)}</td><td>${fn(cCl)}</td><td>${ctr}</td></tr>`;
+  }).join('');
+
+  const cvChanRows=cvChans.map(ch=>{
+    const cr=cv.filter(r=>r.channel===ch);
+    const cS=cr.reduce((a,r)=>a+r.spend,0),cB=cr.reduce((a,r)=>a+r.booking,0),cR=cr.reduce((a,r)=>a+r.revenue,0);
+    const roas=cS>0?(cR/cS).toFixed(2)+'x':'—';
+    return `<tr><td class="l">${ch}</td><td>${f(cS)}</td><td>${cB||'—'}</td><td>${roas}</td></tr>`;
+  }).join('');
+
   document.getElementById('obj-summary').innerHTML=`
-    <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#E4C97A;display:inline-block"></span>Branding / Traffic</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px">
-      <div class="mini-s"><div class="klabel">Spend</div><div class="kval" style="font-size:13px">${f(brS)}</div></div>
-      <div class="mini-s"><div class="klabel">Imp.</div><div class="kval" style="font-size:13px">${fn(brI)}</div></div>
-      <div class="mini-s"><div class="klabel">Clicks</div><div class="kval" style="font-size:13px">${fn(brCl)}</div></div>
+    <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+      <span style="width:9px;height:9px;border-radius:50%;background:#E4C97A;display:inline-block"></span>Branding / Traffic
     </div>
-    <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#A67C00;display:inline-block"></span>Conversion</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
-      <div class="mini-s"><div class="klabel">Spend</div><div class="kval" style="font-size:13px">${f(cvS)}</div></div>
-      <div class="mini-s"><div class="klabel">ROAS</div><div class="kval" style="font-size:13px">${cvS>0?(cvR/cvS).toFixed(2)+'x':'—'}</div></div>
-      <div class="mini-s"><div class="klabel">Booking</div><div class="kval" style="font-size:13px">${cvB}</div></div>
-      <div class="mini-s"><div class="klabel">Revenue</div><div class="kval" style="font-size:13px">${f(cvR)}</div></div>
-    </div>`;
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div class="mini-s"><div class="klabel">Spend</div><div class="kval" style="font-size:14px">${f(brS)}</div></div>
+      <div class="mini-s"><div class="klabel">Impressions</div><div class="kval" style="font-size:14px">${fn(brI)}</div></div>
+      <div class="mini-s"><div class="klabel">Clicks</div><div class="kval" style="font-size:14px">${fn(brCl)}</div></div>
+      <div class="mini-s"><div class="klabel">CTR</div><div class="kval" style="font-size:14px">${brCtr}</div></div>
+    </div>
+    <table class="tbl" style="margin-bottom:20px">
+      <thead><tr><th class="l">Channel</th><th>Spend</th><th>Clicks</th><th>CTR</th></tr></thead>
+      <tbody>${brChanRows}<tr class="tot"><td class="l">Total</td><td>${f(brS)}</td><td>${fn(brCl)}</td><td>${brCtr}</td></tr></tbody>
+    </table>
+
+    <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+      <span style="width:9px;height:9px;border-radius:50%;background:#A67C00;display:inline-block"></span>Conversion
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div class="mini-s"><div class="klabel">Spend</div><div class="kval" style="font-size:14px">${f(cvS)}</div></div>
+      <div class="mini-s"><div class="klabel">ROAS</div><div class="kval" style="font-size:14px">${cvS>0?(cvR/cvS).toFixed(2)+'x':'—'}</div></div>
+      <div class="mini-s"><div class="klabel">Booking</div><div class="kval" style="font-size:14px">${cvB}</div></div>
+      <div class="mini-s"><div class="klabel">Revenue</div><div class="kval" style="font-size:14px">${f(cvR)}</div></div>
+    </div>
+    <table class="tbl">
+      <thead><tr><th class="l">Channel</th><th>Spend</th><th>Booking</th><th>ROAS</th></tr></thead>
+      <tbody>${cvChanRows}<tr class="tot"><td class="l">Total</td><td>${f(cvS)}</td><td>${cvB||'—'}</td><td>${cvS>0?(cvR/cvS).toFixed(2)+'x':'—'}</td></tr></tbody>
+    </table>`;
 }
 
 function campDrawTrend(d){
@@ -727,7 +792,9 @@ function campRenderGeo(){
 
   // Market sources
   const attrRows=agg.map(r=>`<tr><td class="l">${r.c}</td><td>${r.b}</td><td>${f(r.abv)}</td><td>${f(r.rev)}</td><td>${r.nights}</td><td>${r.blt}</td></tr>`).join('');
-  document.getElementById('attr-tbody').innerHTML=attrRows+`<tr class="tot"><td class="l">Grand total</td><td>${tB}</td><td>${f(tB>0?Math.round(tR/tB):0)}</td><td>${f(tR)}</td><td>—</td><td>—</td></tr>`;
+  const tAvgN=tB>0?(agg.reduce((a,r)=>a+parseFloat(r.nights)*r.b,0)/tB).toFixed(1):'—';
+  const tAvgBlt=tB>0?(agg.reduce((a,r)=>a+(parseFloat(r.blt)||0)*r.b,0)/tB).toFixed(0):'—';
+  document.getElementById('attr-tbody').innerHTML=attrRows+`<tr class="tot"><td class="l">Grand total</td><td>${tB}</td><td>${f(tB>0?Math.round(tR/tB):0)}</td><td>${f(tR)}</td><td>${tAvgN}</td><td>${tAvgBlt}</td></tr>`;
 
   // Donut
   const top=agg.slice(0,6);
@@ -735,7 +802,7 @@ function campRenderGeo(){
   const labels=[...top.map(r=>r.c),'Others'];
   const vals=[...top.map(r=>r.rev),othRev];
   if(geoC)geoC.destroy();
-  geoC=new Chart(document.getElementById('geoDonut'),{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:DONUT_COLORS,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+f(ctx.raw)}}}}});
+  geoC=new Chart(document.getElementById('geoDonut'),{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:DONUT_COLORS,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+f(ctx.raw)}}}}});
   document.getElementById('geo-donut-legend').innerHTML=labels.map((l,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${DONUT_COLORS[i]}"></span>${l}<span class="dl-val">${f(vals[i])}</span></div>`).join('');
 
   // BLT bars

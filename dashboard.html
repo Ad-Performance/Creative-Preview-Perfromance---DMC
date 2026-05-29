@@ -148,7 +148,7 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
     <div class="logo">
       <img id="wc-logo" src="" alt="Web Connection" style="height:40px">
       <span class="logo-sep">×</span>
-      <img id="dc-logo" src="" alt="Diamond Cliff" style="height:72px;margin-top:-4px">
+      <img id="dc-logo" src="" alt="Diamond Cliff" style="height:64px">
     </div>
     <span class="header-meta" id="last-updated"></span>
   </div>
@@ -195,28 +195,25 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
     <h1 class="page-title">Campaign Performance</h1>
     <p class="page-sub">Diamond Cliff Resort & Spa · <span id="period-label">Oct 2025 → Apr 2026</span></p>
 
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #eee;border-radius:10px;padding:6px 12px">
-        <span style="font-size:11px;color:#bbb">Period</span>
-        <select id="sm" onchange="campUpdateRange()" style="border:none;background:transparent;font-size:12px;color:#1a1a2e;outline:none;font-family:'Inter',sans-serif">
-          <option value="0">Oct 2025</option><option value="1">Nov 2025</option><option value="2">Dec 2025</option>
-          <option value="3">Jan 2026</option><option value="4">Feb 2026</option><option value="5">Mar 2026</option>
-          <option value="6">Apr 2026</option>
-        </select>
-        <span style="color:#ccc">→</span>
-        <select id="em" onchange="campUpdateRange()" style="border:none;background:transparent;font-size:12px;color:#1a1a2e;outline:none;font-family:'Inter',sans-serif">
-          <option value="0">Oct 2025</option><option value="1">Nov 2025</option><option value="2">Dec 2025</option>
-          <option value="3">Jan 2026</option><option value="4">Feb 2026</option><option value="5">Mar 2026</option>
-          <option value="6" selected>Apr 2026</option>
-        </select>
-      </div>
-      <button onclick="campSetAll()" style="font-size:11px;font-weight:600;padding:7px 14px;border-radius:8px;border:1.5px solid #e8e8e8;background:#f5f5f5;color:#555;cursor:pointer;font-family:'Inter',sans-serif">All time</button>
+    <div class="filter-bar">
+      <select id="sm" onchange="campUpdateRange()">
+        <option value="0">Oct 2025</option><option value="1">Nov 2025</option><option value="2">Dec 2025</option>
+        <option value="3">Jan 2026</option><option value="4">Feb 2026</option><option value="5">Mar 2026</option>
+        <option value="6">Apr 2026</option>
+      </select>
+      <span style="color:#bbb;font-size:13px">→</span>
+      <select id="em" onchange="campUpdateRange()">
+        <option value="0">Oct 2025</option><option value="1">Nov 2025</option><option value="2">Dec 2025</option>
+        <option value="3">Jan 2026</option><option value="4">Feb 2026</option><option value="5">Mar 2026</option>
+        <option value="6" selected>Apr 2026</option>
+      </select>
+      <button class="btn btn-reload" onclick="campSetAll()">All time</button>
     </div>
 
     <div class="ctabs">
       <div class="ctab active" onclick="campSwitchTab('overview',this)">Overview</div>
-      <div class="ctab" onclick="campSwitchTab('breakdown',this)">Campaign & channel</div>
-      <div class="ctab" onclick="campSwitchTab('geoattr',this)">Geo & attribution</div>
+      <div class="ctab" onclick="campSwitchTab('breakdown',this)">Campaign & Channel</div>
+      <div class="ctab" onclick="campSwitchTab('geoattr',this)">Geo & Attribution</div>
     </div>
 
     <!-- OVERVIEW -->
@@ -239,8 +236,8 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
           <div style="position:relative;height:190px"><canvas id="trendChart">.</canvas></div>
         </div>
         <div class="ccard">
-          <div class="ctitle">Spend vs Booking</div>
-          <div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lline" style="border-color:#1a1a2e"></span>Booking</span></div>
+          <div class="ctitle">Spend by Geo & Revenue</div>
+          <div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lline" style="border-color:#1B4332"></span>Revenue</span></div>
           <div style="position:relative;height:190px"><canvas id="bookChart">.</canvas></div>
         </div>
       </div>
@@ -313,7 +310,7 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
             <div style="position:relative;width:140px;height:140px;flex-shrink:0"><canvas id="geoDonut">.</canvas></div>
             <div class="donut-legend" id="geo-donut-legend" style="min-width:120px"></div>
           </div>
-          <div style="margin-top:14px">
+          <div style="margin-top:24px">
             <div class="slbl" style="margin-bottom:8px">Booking lead time</div>
             <div id="blt-bars"></div>
           </div>
@@ -559,9 +556,9 @@ function campUpdateRange(){
 
   // Monthly table
   let rows='';
-  d.forEach(x=>{rows+=`<tr><td class="l">${x.l}</td><td>${f(x.s)}</td><td>${fn(x.i)}</td><td>฿${x.cpm.toFixed(2)}</td><td>${fn(x.cl)}</td><td>฿${x.cpc.toFixed(2)}</td><td>${x.ctr}</td><td>${x.b}</td><td>${x.cpa>0?f(x.cpa):'—'}</td><td>${f(x.r)}</td><td><span style="${rc(x.roas)}">${x.roas}x</span></td></tr>`;});
+  d.forEach(x=>{rows+=`<tr><td class="l">${x.l}</td><td>${f(x.s)}</td><td>${fn(x.i)}</td><td>฿${x.cpm.toFixed(2)}</td><td>${fn(x.cl)}</td><td>฿${x.cpc.toFixed(2)}</td><td>${x.ctr}</td><td>${x.b}</td><td>${x.cpa>0?f(x.cpa):'—'}</td><td>${f(x.r)}</td><td>${x.roas}x</td></tr>`;});
   const totCpa=tB>0?Math.round(tS/tB):0;
-  rows+=`<tr class="tot"><td class="l">Total</td><td>${f(tS)}</td><td>${fn(tI)}</td><td>฿${avgCpm}</td><td>${fn(tCl)}</td><td>฿${avgCpc}</td><td>${avgCtr}</td><td>${tB}</td><td>${totCpa>0?f(totCpa):'—'}</td><td>${f(tR)}</td><td style="color:#1a1a2e;font-weight:800">${roas}x</td></tr>`;
+  rows+=`<tr class="tot"><td class="l">Total</td><td>${f(tS)}</td><td>${fn(tI)}</td><td>฿${avgCpm}</td><td>${fn(tCl)}</td><td>฿${avgCpc}</td><td>${avgCtr}</td><td>${tB}</td><td>${totCpa>0?f(totCpa):'—'}</td><td>${f(tR)}</td><td>${roas}x</td></tr>`;
   document.getElementById('monthly-tbody').innerHTML=rows;
 
   campRenderObjSummary();
@@ -605,14 +602,25 @@ function campDrawTrend(d){
 }
 
 function campDrawBooking(d){
+  // Build geo data from ATTR_DATA for same period months
+  const geoCountries = [...new Set(ATTR_DATA.map(r=>r.country))].slice(0,5);
+  const geoColors = ['#1a1a2e','#2d6a4f','#52a07a','#8fc4a8','#C4982A'];
+  const labels = d.map(x=>x.l.split(' ')[0]);
+  const geoDatasets = geoCountries.map((c,ci)=>({
+    type:'bar',label:c,
+    data:d.map(x=>{
+      const[mo,yr]=x.l.split(' ').map((v,i)=>i===0?['Oct','Nov','Dec','Jan','Feb','Mar','Apr'].indexOf(v)+10:parseInt(v));
+      return ATTR_DATA.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.revenue,0);
+    }),
+    backgroundColor:geoColors[ci],borderRadius:ci===geoCountries.length-1?[3,3,0,0]:0,
+    stack:'geo',yAxisID:'y',barPercentage:0.5,categoryPercentage:0.65
+  }));
+  const revDataset={type:'line',label:'Total Revenue',data:d.map(x=>x.r),borderColor:'#1B4332',backgroundColor:'rgba(27,67,50,.05)',pointBackgroundColor:'#fff',pointBorderColor:'#1B4332',pointBorderWidth:2,pointRadius:3,borderWidth:2,tension:0.4,yAxisID:'y2',fill:true};
   if(bC)bC.destroy();
-  bC=new Chart(document.getElementById('bookChart'),{type:'bar',data:{labels:d.map(x=>x.l.split(' ')[0]),datasets:[
-    {type:'bar',label:'Spend',data:d.map(x=>x.s),backgroundColor:'#C4982A',borderRadius:4,yAxisID:'y',barPercentage:0.5,categoryPercentage:0.65},
-    {type:'line',label:'Booking',data:d.map(x=>x.b),borderColor:'#1a1a2e',backgroundColor:'rgba(26,26,46,.05)',pointBackgroundColor:'#fff',pointBorderColor:'#1a1a2e',pointBorderWidth:2,pointRadius:3,borderWidth:2,tension:0.4,yAxisID:'y2',fill:true}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-    x:{ticks:{font:{size:9}},grid:{display:false}},
-    y:{ticks:{font:{size:9},callback:v=>'฿'+(v/1000).toFixed(0)+'k'},grid:{color:'rgba(0,0,0,.04)'}},
-    y2:{position:'right',min:0,ticks:{font:{size:9},callback:v=>v===0?'':v+' bk'},grid:{display:false}}
+  bC=new Chart(document.getElementById('bookChart'),{type:'bar',data:{labels,datasets:[...geoDatasets,revDataset]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+f(ctx.raw)}}},scales:{
+    x:{stacked:true,ticks:{font:{size:9}},grid:{display:false}},
+    y:{stacked:true,ticks:{font:{size:9},callback:v=>'฿'+(v/1000).toFixed(0)+'k'},grid:{color:'rgba(0,0,0,.04)'}},
+    y2:{position:'right',min:0,ticks:{font:{size:9},callback:v=>v===0?'':'฿'+(v/1000).toFixed(0)+'k'},grid:{display:false}}
   }}});
 }
 
@@ -628,11 +636,11 @@ function campRenderBreakdown(){
     const cr=rows.filter(r=>r.campaign===c);
     const cS=cr.reduce((a,r)=>a+r.spend,0),cI=cr.reduce((a,r)=>a+r.imp,0),cCl=cr.reduce((a,r)=>a+r.clicks,0),cB=cr.reduce((a,r)=>a+r.booking,0),cR=cr.reduce((a,r)=>a+r.revenue,0);
     const cpm=cI>0?(cS/(cI/1000)).toFixed(2):0,cpc=cCl>0?(cS/cCl).toFixed(2):0,ctr=cI>0?((cCl/cI)*100).toFixed(2)+'%':'—',cpa=cB>0?Math.round(cS/cB):0,cvr=cCl>0?((cB/cCl)*100).toFixed(2)+'%':'—',roas=cS>0?(cR/cS).toFixed(2):0;
-    const rb=roas>=8?'roas-hi':roas>=4?'roas-md':'roas-lo';
+    const rb='';
     html+=`<tr><td class="l">${c}</td><td>${f(cS)}</td><td>${fn(cI)}</td><td>฿${cpm}</td><td>${fn(cCl)}</td><td>฿${cpc}</td><td>${ctr}</td><td>${cB||'—'}</td><td>${cpa>0?f(cpa):'—'}</td><td>${cvr}</td><td>${cR>0?f(cR):'—'}</td><td><span class="${rb}">${roas}x</span></td></tr>`;
   });
   const tS=rows.reduce((a,r)=>a+r.spend,0),tI=rows.reduce((a,r)=>a+r.imp,0),tCl=rows.reduce((a,r)=>a+r.clicks,0),tB=rows.reduce((a,r)=>a+r.booking,0),tR=rows.reduce((a,r)=>a+r.revenue,0);
-  const troas=tS>0?(tR/tS).toFixed(2):0;const trb=troas>=8?'roas-hi':troas>=4?'roas-md':'roas-lo';
+  const troas=tS>0?(tR/tS).toFixed(2):0;const trb='';
   html+=`<tr class="tot"><td class="l">Total</td><td>${f(tS)}</td><td>${fn(tI)}</td><td>฿${tI>0?(tS/(tI/1000)).toFixed(2):0}</td><td>${fn(tCl)}</td><td>฿${tCl>0?(tS/tCl).toFixed(2):0}</td><td>${tI>0?((tCl/tI)*100).toFixed(2)+'%':'—'}</td><td>${tB||'—'}</td><td>${tB>0?f(Math.round(tS/tB)):'—'}</td><td>${tCl>0?((tB/tCl)*100).toFixed(2)+'%':'—'}</td><td>${tR>0?f(tR):'—'}</td><td><span class="${trb}">${troas}x</span></td></tr>`;
   document.getElementById('camp-tbody').innerHTML=html;
 

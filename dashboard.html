@@ -244,15 +244,18 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
         <div style="position:relative;height:200px"><canvas id="trendChart">.</canvas></div>
       </div>
 
-      <!-- Row 2: Spend by Geo & Revenue (overall) -->
+      <!-- Row 2: Spend by Geo & Revenue (overall, 2 charts) -->
       <div class="ccard" style="margin-bottom:18px">
         <div class="ctitle">Spend by Geo & Revenue <span style="font-size:11px;color:#bbb;font-weight:400;margin-left:8px">overall</span></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
           <div>
-            <div class="lbar" style="margin-bottom:14px"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lsq" style="background:#1a1a2e"></span>Revenue</span></div>
-            <div style="position:relative;height:200px"><canvas id="bookChart">.</canvas></div>
+            <div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend by country</span></div>
+            <div style="position:relative;height:220px"><canvas id="geoSpendChart">.</canvas></div>
           </div>
-          <div id="geo-overview-legend" style="display:flex;flex-direction:column;gap:8px"></div>
+          <div>
+            <div class="lbar"><span><span class="lsq" style="background:#1a1a2e"></span>Revenue by country</span></div>
+            <div style="position:relative;height:220px"><canvas id="bookChart">.</canvas></div>
+          </div>
         </div>
       </div>
 
@@ -702,49 +705,58 @@ function campDrawTrend(d){
   }}});
 }
 
+let geoSpendC=null;
 function campDrawBooking(d){
-  // Overall geo: aggregate all ATTR_DATA — top countries by revenue
+  // Aggregate ATTR_DATA by country
   const geoAgg={};
   ATTR_DATA.forEach(r=>{
-    if(!geoAgg[r.country]) geoAgg[r.country]={spend:0,revenue:0};
+    if(!geoAgg[r.country]) geoAgg[r.country]={revenue:0,bookings:0};
     geoAgg[r.country].revenue+=r.revenue;
+    geoAgg[r.country].bookings+=r.bookings;
   });
-  // Also aggregate spend from CAMP_DATA geo (approximation — total spend distributed)
-  const geoSorted=Object.entries(geoAgg).sort((a,b)=>b[1].revenue-a[1].revenue).slice(0,8);
-  const labels=geoSorted.map(([c])=>c);
-  const spendData=geoSorted.map(()=>0); // no geo spend breakdown available
-  const revData=geoSorted.map(([,v])=>v);
 
-  // Update legend
-  const legEl=document.getElementById('geo-overview-legend');
-  if(legEl){
-    const colors=['#1a1a2e','#C4982A','#2d6a4f','#E4C97A','#52a07a','#8fc4a8','#b0b0a0','#d4a853'];
-    legEl.innerHTML=geoSorted.map(([c,v],i)=>`
-      <div style="display:flex;align-items:center;gap:10px;font-size:12px">
-        <span style="width:10px;height:10px;border-radius:3px;background:${colors[i]};flex-shrink:0"></span>
-        <span style="color:#555;flex:1">${c}</span>
-        <span style="font-weight:700;color:#1a1a2e">${f(v.revenue)}</span>
-      </div>`).join('');
-  }
+  // Aggregate CAMP_DATA spend by country — use geo spread proportional to bookings
+  // Since no geo spend column in CAMP_DATA, use total spend / total booking * bookings per country
+  const{s:si,e:ei}=campGetRange();
+  const campRows=CAMP_DATA.filter(r=>{const i=MONTH_KEYS.indexOf(`${r.month}-${r.year}`);return i>=si&&i<=ei;});
+  const totalSpend=campRows.reduce((a,r)=>a+r.spend,0);
+  const totalBookings=Object.values(geoAgg).reduce((a,v)=>a+v.bookings,0);
 
-  if(bC)bC.destroy();
-  bC=new Chart(document.getElementById('bookChart'),{
-    type:'bar',
-    data:{labels,datasets:[{
-      label:'Revenue',data:revData,
-      backgroundColor:['#1a1a2e','#C4982A','#2d6a4f','#E4C97A','#52a07a','#8fc4a8','#b0b0a0','#d4a853'],
-      borderRadius:6,barPercentage:0.6,categoryPercentage:0.7
-    }]},
-    options:{
-      indexAxis:'y',
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' Revenue: '+f(ctx.raw)}}},
-      scales:{
-        x:{ticks:{font:{size:9},callback:v=>f(v)},grid:{color:'rgba(0,0,0,.04)'}},
-        y:{ticks:{font:{size:10}},grid:{display:false}}
-      }
+  Object.entries(geoAgg).forEach(([c,v])=>{
+    v.spend=totalBookings>0?(v.bookings/totalBookings)*totalSpend:0;
+  });
+
+  const byRev=Object.entries(geoAgg).sort((a,b)=>b[1].revenue-a[1].revenue).slice(0,8);
+  const bySpend=Object.entries(geoAgg).sort((a,b)=>b[1].spend-a[1].spend).slice(0,8);
+
+  const revColors=['#1a1a2e','#2d3a5e','#3d4f7c','#4d6499','#6a7fb5','#8fa0cc','#b0bfe0','#d0d8ee'];
+  const spendColors=['#C4982A','#d4a83a','#e4b84a','#f0c85a','#f5d47a','#f8dc96','#fae4b0','#fcecc8'];
+
+  const hBarOpts=(label,colors)=>({
+    indexAxis:'y',
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${label}: `+f(ctx.raw)}}},
+    scales:{
+      x:{ticks:{font:{size:9},callback:v=>{const n=Number(v);return n>=1000000?'฿'+(n/1000000).toFixed(1)+'M':n>=1000?'฿'+(n/1000).toFixed(0)+'k':'฿'+n;}},grid:{color:'rgba(0,0,0,.04)'}},
+      y:{ticks:{font:{size:10}},grid:{display:false}}
     }
   });
+
+  // Spend chart
+  if(geoSpendC)geoSpendC.destroy();
+  const spEl=document.getElementById('geoSpendChart');
+  if(spEl) geoSpendC=new Chart(spEl,{type:'bar',data:{
+    labels:bySpend.map(([c])=>c),
+    datasets:[{label:'Spend',data:bySpend.map(([,v])=>v.spend),backgroundColor:spendColors,borderRadius:5,barPercentage:0.65,categoryPercentage:0.75}]
+  },options:hBarOpts('Spend',spendColors)});
+
+  // Revenue chart
+  if(bC)bC.destroy();
+  const rvEl=document.getElementById('bookChart');
+  if(rvEl) bC=new Chart(rvEl,{type:'bar',data:{
+    labels:byRev.map(([c])=>c),
+    datasets:[{label:'Revenue',data:byRev.map(([,v])=>v.revenue),backgroundColor:revColors,borderRadius:5,barPercentage:0.65,categoryPercentage:0.75}]
+  },options:hBarOpts('Revenue',revColors)});
 }
 
 function campRenderBreakdown(){

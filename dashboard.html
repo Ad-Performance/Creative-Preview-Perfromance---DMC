@@ -745,6 +745,9 @@ function campDrawGeo(){
   const bySpend=Object.entries(agg).sort((a,b)=>b[1].spend-a[1].spend).slice(0,7);
   function mkDonut(elId,entries,vals,colors,legId,fmt){
     fmt=fmt||f;
+    // Sort by value desc
+    const sorted=entries.map((e,i)=>({e,v:vals[i],c:colors[i]})).sort((a,b)=>b.v-a.v);
+    entries=sorted.map(x=>x.e); vals=sorted.map(x=>x.v); colors=sorted.map(x=>x.c);
     const total=vals.reduce((a,v)=>a+v,0);
     const el=document.getElementById(elId);if(!el)return;
     if(el._c)el._c.destroy();
@@ -790,6 +793,9 @@ function campRenderGeo(){
   const byBk=[...all].sort((a,b)=>b[1].b-a[1].b).slice(0,7);
   function mkDonutS(id,labs,vals,colors,legId,fmt){
     fmt=fmt||f;
+    // Sort by value desc
+    const sorted=labs.map((l,i)=>({l,v:vals[i],c:colors[i]})).sort((a,b)=>b.v-a.v);
+    labs=sorted.map(x=>x.l); vals=sorted.map(x=>x.v); colors=sorted.map(x=>x.c);
     const total=vals.reduce((a,v)=>a+v,0);
     const el=document.getElementById(id);if(!el)return;if(el._c)el._c.destroy();
     el._c=new Chart(el,{type:'doughnut',data:{labels:labs,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)} (${total>0?((ctx.raw/total)*100).toFixed(1):0}%)`}}}}});
@@ -888,6 +894,9 @@ function campRenderBreakdown(){
   document.getElementById('camp-tbody').innerHTML=html;
   // Donut helper for breakdown charts
   function mkBrkDonut(id,legId,labels,vals,colors,fmt){
+    // Sort by value desc
+    const sorted=labels.map((l,i)=>({l,v:vals[i],c:colors[i]})).sort((a,b)=>b.v-a.v);
+    labels=sorted.map(x=>x.l); vals=sorted.map(x=>x.v); colors=sorted.map(x=>x.c);
     const total=vals.reduce((a,v)=>a+v,0);
     const el=document.getElementById(id);if(!el)return;
     if(el._c)el._c.destroy();

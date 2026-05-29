@@ -228,19 +228,26 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
       <!-- 3. Spend by Geo & Revenue -->
       <div class="ccard" style="margin-bottom:18px">
         <div class="ctitle">Spend by Geo & Revenue <span class="csub">overall</span></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
           <div>
             <div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend by country</span></div>
-            <div style="display:flex;align-items:center;gap:16px">
-              <div style="position:relative;width:150px;height:150px;flex-shrink:0"><canvas id="geoSpendChart">.</canvas></div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="position:relative;width:130px;height:130px;flex-shrink:0"><canvas id="geoSpendChart">.</canvas></div>
               <div id="geo-spend-legend"></div>
             </div>
           </div>
           <div>
             <div class="lbar"><span><span class="lsq" style="background:#1a1a2e"></span>Revenue by country</span></div>
-            <div style="display:flex;align-items:center;gap:16px">
-              <div style="position:relative;width:150px;height:150px;flex-shrink:0"><canvas id="geoRevChart">.</canvas></div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="position:relative;width:130px;height:130px;flex-shrink:0"><canvas id="geoRevChart">.</canvas></div>
               <div id="geo-rev-legend"></div>
+            </div>
+          </div>
+          <div>
+            <div class="lbar"><span><span class="lsq" style="background:#2D6A4F"></span>Booking by country</span></div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="position:relative;width:130px;height:130px;flex-shrink:0"><canvas id="geoBkChart">.</canvas></div>
+              <div id="geo-bk-legend2"></div>
             </div>
           </div>
         </div>
@@ -745,8 +752,10 @@ function campDrawGeo(){
   // Master color map
   const allC=[...new Set([...bySpend.map(([c])=>c),...byRev.map(([c])=>c)])];
   const cColor={};allC.forEach((c,i)=>{cColor[c]=DC[i%DC.length];});
+  const byBk2=Object.entries(agg).sort((a,b)=>b[1].b-a[1].b).slice(0,7);
   mkDonut('geoSpendChart',bySpend.map(([c])=>c),bySpend.map(([,v])=>v.spend),bySpend.map(([c])=>cColor[c]),'geo-spend-legend',f);
   mkDonut('geoRevChart',byRev.map(([c])=>c),byRev.map(([,v])=>v.rev),byRev.map(([c])=>cColor[c]),'geo-rev-legend',f);
+  mkDonut('geoBkChart',byBk2.map(([c])=>c),byBk2.map(([,v])=>v.b),byBk2.map(([c])=>cColor[c]),'geo-bk-legend2',v=>v+' bookings');
 }
 
 function campRenderGeo(){

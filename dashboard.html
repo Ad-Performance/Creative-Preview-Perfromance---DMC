@@ -106,9 +106,9 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
 .tbl .tot td{font-weight:800;color:#1a1a2e;border-top:2px solid #f0f0f0;border-bottom:none;background:#f9fafb}
 .tbl tr:not(.tot):hover td{background:#fafaf9}
 .heat-hi,.heat-md,.heat-lo{text-align:center !important}
-.heat-hi span{display:inline-block;padding:2px 9px;border-radius:6px;background:#1a1a2e;color:#fff;font-weight:700;font-size:11px}
-.heat-md span{display:inline-block;padding:2px 9px;border-radius:6px;background:#404040;color:#fff;font-weight:600;font-size:11px}
-.heat-lo span{display:inline-block;padding:2px 9px;border-radius:6px;background:#e8e8e8;color:#555;font-weight:500;font-size:11px}
+.heat-hi span{display:inline-block;padding:2px 9px;border-radius:6px;background:#1B4332;color:#fff;font-weight:700;font-size:11px}
+.heat-md span{display:inline-block;padding:2px 9px;border-radius:6px;background:#2D6A4F;color:#fff;font-weight:600;font-size:11px}
+.heat-lo span{display:inline-block;padding:2px 9px;border-radius:6px;background:#8FC4A8;color:#fff;font-weight:500;font-size:11px}
 .cross{width:100%;border-collapse:collapse;font-size:12px}
 .cross th{background:#1a1a2e;color:#fff;padding:9px 12px;text-align:right;white-space:nowrap;font-size:11px;font-weight:700}
 .cross th:first-child{text-align:left}
@@ -266,9 +266,9 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
         </table></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:18px">
-        <div class="ccard"><div class="ctitle">Spend vs Revenue<span class="csub">by campaign</span></div><div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lsq" style="background:#1a1a2e"></span>Revenue</span></div><div style="position:relative;height:180px"><canvas id="c1">.</canvas></div></div>
-        <div class="ccard"><div class="ctitle">Spend vs Clicks<span class="csub">by channel</span></div><div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lsq" style="background:#1a1a2e"></span>Clicks</span></div><div style="position:relative;height:180px"><canvas id="c2">.</canvas></div></div>
-        <div class="ccard"><div class="ctitle">Spend vs Revenue<span class="csub">by channel</span></div><div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lsq" style="background:#1a1a2e"></span>Revenue</span></div><div style="position:relative;height:180px"><canvas id="c3">.</canvas></div></div>
+        <div class="ccard"><div class="ctitle">Spend by Channel</div><div style="display:flex;align-items:center;gap:14px;margin-top:8px"><div style="position:relative;width:130px;height:130px;flex-shrink:0"><canvas id="c1">.</canvas></div><div id="c1-legend"></div></div></div>
+        <div class="ccard"><div class="ctitle">Clicks by Channel</div><div style="display:flex;align-items:center;gap:14px;margin-top:8px"><div style="position:relative;width:130px;height:130px;flex-shrink:0"><canvas id="c2">.</canvas></div><div id="c2-legend"></div></div></div>
+        <div class="ccard"><div class="ctitle">Revenue by Channel</div><div style="display:flex;align-items:center;gap:14px;margin-top:8px"><div style="position:relative;width:130px;height:130px;flex-shrink:0"><canvas id="c3">.</canvas></div><div id="c3-legend"></div></div></div>
       </div>
       <div class="ccard">
         <div class="ctitle">Channel breakdown<span id="chan-label" class="csub"></span></div>
@@ -794,7 +794,7 @@ function campRenderGeo(){
 
   mkDonutS('geoDonut',byRev.map(([c])=>c),byRev.map(([,v])=>v.rev),byRev.map(([c])=>countryColor[c]),'geo-donut-legend');
   mkDonutS('abvChart',byAbv.map(([c])=>c),byAbv.map(([,v])=>v.abv),byAbv.map(([c])=>countryColor[c]),'geo-abv-legend');
-  mkDonutS('bookingChart',byBk.map(([c])=>c),byBk.map(([,v])=>v.b),byBk.map(([c])=>countryColor[c]),'geo-bk-legend',v=>v+' bkgs');
+  mkDonutS('bookingChart',byBk.map(([c])=>c),byBk.map(([,v])=>v.b),byBk.map(([c])=>countryColor[c]),'geo-bk-legend',v=>v+' bookings');
 }
 
 function campRenderHeatmaps(){
@@ -833,12 +833,25 @@ function campRenderBreakdown(){
   const tS=rows.reduce((a,r)=>a+r.spend,0),tI=rows.reduce((a,r)=>a+r.imp,0),tCl=rows.reduce((a,r)=>a+r.clicks,0),tB=rows.reduce((a,r)=>a+r.booking,0),tR=rows.reduce((a,r)=>a+r.revenue,0);
   html+=`<tr class="tot"><td class="l">Total</td><td>${f(tS)}</td><td>${fn(tI)}</td><td>฿${tI>0?(tS/(tI/1000)).toFixed(2):0}</td><td>${fn(tCl)}</td><td>฿${tCl>0?(tS/tCl).toFixed(2):0}</td><td>${tI>0?((tCl/tI)*100).toFixed(2)+'%':'—'}</td><td>${tB||'—'}</td><td>${tB>0?f(Math.round(tS/tB)):'—'}</td><td>${tCl>0?((tB/tCl)*100).toFixed(2)+'%':'—'}</td><td>${tR>0?f(tR):'—'}</td><td>${tS>0?(tR/tS).toFixed(2):'0'}x</td></tr>`;
   document.getElementById('camp-tbody').innerHTML=html;
-  if(c1C)c1C.destroy();
-  c1C=new Chart(document.getElementById('c1'),{type:'bar',data:{labels:camps,datasets:[{label:'Spend',data:camps.map(c=>rows.filter(r=>r.campaign===c).reduce((a,r)=>a+r.spend,0)),backgroundColor:'rgba(196,152,42,.9)',borderRadius:5,barPercentage:0.5,categoryPercentage:0.65},{label:'Revenue',data:camps.map(c=>rows.filter(r=>r.campaign===c).reduce((a,r)=>a+r.revenue,0)),backgroundColor:'rgba(26,26,46,.85)',borderRadius:5,barPercentage:0.5,categoryPercentage:0.65}]},options:{...co,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${f(ctx.raw)}`}}}}});
-  if(c2C)c2C.destroy();
-  c2C=new Chart(document.getElementById('c2'),{type:'bar',data:{labels:chans,datasets:[{label:'Spend',data:chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.spend,0)),backgroundColor:'rgba(196,152,42,.9)',borderRadius:5,yAxisID:'y',barPercentage:0.5,categoryPercentage:0.65},{label:'Clicks',data:chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.clicks,0)),backgroundColor:'rgba(26,26,46,.85)',borderRadius:5,yAxisID:'y2',barPercentage:0.5,categoryPercentage:0.65}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{font:{size:9},callback:fax},grid:{color:'rgba(0,0,0,.04)'}},y2:{position:'right',ticks:{font:{size:9}},grid:{display:false}}}}});
-  if(c3C)c3C.destroy();
-  c3C=new Chart(document.getElementById('c3'),{type:'bar',data:{labels:chans,datasets:[{label:'Spend',data:chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.spend,0)),backgroundColor:'rgba(196,152,42,.9)',borderRadius:5,barPercentage:0.5,categoryPercentage:0.65},{label:'Revenue',data:chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.revenue,0)),backgroundColor:'rgba(26,26,46,.85)',borderRadius:5,barPercentage:0.5,categoryPercentage:0.65}]},options:{...co,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${f(ctx.raw)}`}}}}});
+  // Donut helper for breakdown charts
+  function mkBrkDonut(id,legId,labels,vals,colors,fmt){
+    const el=document.getElementById(id);if(!el)return;
+    if(el._c)el._c.destroy();
+    el._c=new Chart(el,{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)}`}}}}});
+    const leg=document.getElementById(legId);
+    if(leg)leg.innerHTML=labels.map((l,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${colors[i]}"></span>${l}<span class="dl-val">${fmt(vals[i])}</span></div>`).join('');
+  }
+  // Build channel color map
+  const chanColorMap={};chans.forEach((c,i)=>{chanColorMap[c]=DC[i%DC.length];});
+  const campColorMap={};camps.forEach((c,i)=>{campColorMap[c]=DC[i%DC.length];});
+
+  if(c1C)c1C=null;
+  mkBrkDonut('c1','c1-legend',chans,chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.spend,0)),chans.map(c=>chanColorMap[c]),f);
+  if(c2C)c2C=null;
+  mkBrkDonut('c2','c2-legend',chans,chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.clicks,0)),chans.map(c=>chanColorMap[c]),v=>fn(v));
+  if(c3C)c3C=null;
+  mkBrkDonut('c3','c3-legend',chans,chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.revenue,0)),chans.map(c=>chanColorMap[c]),f);
   campRenderChan(rows,chans);
 }
 

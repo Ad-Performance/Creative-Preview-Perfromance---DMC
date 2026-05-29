@@ -184,6 +184,7 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
       <span style="color:#bbb">→</span>
       <select id="em" onchange="campUpdateRange()"><option value="0">Oct 2025</option></select>
       <button class="btn btn-reload" onclick="campSetAll()">All time</button>
+      <button class="btn btn-dark" onclick="campExportPDF()">📄 Export PDF</button>
     </div>
 
     <div class="ctabs">
@@ -514,7 +515,19 @@ function exportPDF(){
         ${others?`<div class="kpis">${others}</div>`:""}
         ${d["Status / Note"]?`<div class="nt">${d["Status / Note"]}</div>`:""}</div></div>`;
     }).join("");
-    return `<div class="grp"><div class="gt">${g}</div><div class="grid">${cards}</div></div>`;
+    // Include KPI table if open in DOM
+    let tblHtml='';
+    document.querySelectorAll('.group-section').forEach(el=>{
+      const titleEl=el.querySelector('.group-title');
+      if(titleEl&&titleEl.textContent===g){
+        const tw=el.querySelector('.table-wrap');
+        if(tw&&tw.classList.contains('open')){
+          const trows=items.map(d=>{const ctr=d["CTR (%)"]||"—";return`<tr><td>${d["Creative Name"]||"—"}</td><td>${d["Spend (฿)"]||"—"}</td><td>${d.Impressions||"—"}</td><td>${d["CPM (฿)"]||"—"}</td><td>${d.Clicks||"—"}</td><td>${d["CPC (฿)"]||"—"}</td><td>${ctr}</td></tr>`;}).join("");
+          tblHtml=`<table class="ptbl"><thead><tr><th>Creative</th><th>Spend</th><th>Imp.</th><th>CPM</th><th>Clicks</th><th>CPC</th><th>CTR</th></tr></thead><tbody>${trows}</tbody></table>`;
+        }
+      }
+    });
+    return `<div class="grp"><div class="gt">${g}</div><div class="grid">${cards}</div>${tblHtml}</div>`;
   }).join("");
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -946,6 +959,92 @@ function campInitCharts(){
   if(chartsInited)return;
   chartsInited=true;
   campUpdateRange();
+}
+
+function campExportPDF(){
+  const period=document.getElementById('period-label').textContent;
+  const activeTab=document.querySelector('.ctab.active').textContent;
+
+  // Collect all visible table data
+  function tblToHTML(id){
+    const el=document.getElementById(id);
+    if(!el)return'';
+    const rows=[...el.querySelectorAll('tr')];
+    if(!rows.length)return'';
+    const html=rows.map(r=>{
+      const cells=[...r.querySelectorAll('th,td')].map(c=>`<${c.tagName.toLowerCase()} style="padding:5px 8px;border:1px solid #eee;font-size:11px;${c.tagName==='TH'?'background:#1a1a2e;color:#fff;font-weight:700':'color:#333'}">${c.textContent}</td>`).join('');
+      return`<tr>${cells}</tr>`;
+    }).join('');
+    return`<table style="width:100%;border-collapse:collapse;margin-bottom:16px">${html}</table>`;
+  }
+
+  // Collect charts as images
+  function chartImg(id){
+    const canvas=document.getElementById(id);
+    if(!canvas)return'';
+    try{return`<img src="${canvas.toDataURL()}" style="max-width:100%;height:200px;object-fit:contain;margin-bottom:8px">`;}
+    catch(e){return'';}
+  }
+
+  let body='';
+
+  if(activeTab.includes('Overview')){
+    body+=`<h2 style="font-size:14px;font-weight:700;margin:16px 0 8px;color:#1a1a2e">KPI Summary</h2>`;
+    const kpis=['k-spend','k-imp','k-cpm','k-clicks','k-cpc','k-ctr','k-booking','k-rev','k-roas'];
+    const klbls=['Spend','Impressions','CPM','Clicks','CPC','CTR','Booking','Revenue','ROAS'];
+    body+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">`+kpis.map((id,i)=>`<div style="background:#f7f5f2;border-radius:8px;padding:10px 12px"><div style="font-size:9px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">${klbls[i]}</div><div style="font-size:16px;font-weight:800;color:#1a1a2e">${document.getElementById(id)?.textContent||'—'}</div></div>`).join('')+`</div>`;
+    body+=`<h2 style="font-size:14px;font-weight:700;margin:16px 0 8px;color:#1a1a2e">Monthly Performance</h2>`;
+    body+=tblToHTML('monthly-tbody');
+  }
+
+  if(activeTab.includes('Campaign')){
+    body+=`<h2 style="font-size:14px;font-weight:700;margin:16px 0 8px;color:#1a1a2e">Campaign Breakdown</h2>`;
+    body+=tblToHTML('camp-tbody');
+    body+=`<h2 style="font-size:14px;font-weight:700;margin:16px 0 8px;color:#1a1a2e">Channel Breakdown</h2>`;
+    const chanTbl=document.getElementById('chan-wrap');
+    if(chanTbl) body+=chanTbl.innerHTML.replace(/<canvas[^>]*>.*?<\/canvas>/gs,'');
+  }
+
+  if(activeTab.includes('Geo')){
+    body+=`<h2 style="font-size:14px;font-weight:700;margin:16px 0 8px;color:#1a1a2e">Tier 1</h2>`;
+    body+=tblToHTML('geo-t1-tbody');
+    body+=`<h2 style="font-size:14px;font-weight:700;margin:16px 0 8px;color:#1a1a2e">Tier 2</h2>`;
+    body+=tblToHTML('geo-t2-tbody');
+    body+=`<h2 style="font-size:14px;font-weight:700;margin:16px 0 8px;color:#1a1a2e">Other</h2>`;
+    body+=tblToHTML('geo-tother-tbody');
+    body+=`<h2 style="font-size:14px;font-weight:700;margin:16px 0 8px;color:#1a1a2e">Market Sources</h2>`;
+    body+=tblToHTML('attr-tbody');
+    body+=`<h2 style="font-size:14px;font-weight:700;margin:16px 0 8px;color:#1a1a2e">Revenue Contribution</h2>`;
+    const revTbl=document.querySelector('#rev-heatmap-tbody');
+    const revHead=document.querySelector('#rev-heat-head');
+    if(revTbl&&revHead) body+=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-bottom:16px"><thead><tr>${[...revHead.querySelectorAll('th')].map(th=>`<th style="background:#1a1a2e;color:#fff;padding:5px 8px;font-size:10px">${th.textContent}</th>`).join('')}</tr></thead><tbody>${revTbl.innerHTML}</tbody></table></div>`;
+    body+=`<h2 style="font-size:14px;font-weight:700;margin:16px 0 8px;color:#1a1a2e">Room Nights Contribution</h2>`;
+    const rnTbl=document.querySelector('#rn-heatmap-tbody');
+    const rnHead=document.querySelector('#rn-heat-head');
+    if(rnTbl&&rnHead) body+=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-bottom:16px"><thead><tr>${[...rnHead.querySelectorAll('th')].map(th=>`<th style="background:#1a1a2e;color:#fff;padding:5px 8px;font-size:10px">${th.textContent}</th>`).join('')}</tr></thead><tbody>${rnTbl.innerHTML}</tbody></table></div>`;
+  }
+
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;padding:28px;color:#1a1a2e}
+    .hdr{margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #1a1a2e}
+    h1{font-size:20px;font-weight:800;margin-bottom:3px}
+    .meta{font-size:11px;color:#aaa}
+    h2{page-break-before:auto}
+    @media print{h2{page-break-before:auto}}
+  </style></head><body>
+  <div class="hdr">
+    <h1>Campaign Performance Report — ${activeTab}</h1>
+    <div class="meta">${period} · Exported ${new Date().toLocaleDateString('en-GB',{year:'numeric',month:'long',day:'numeric'})}</div>
+  </div>
+  ${body}
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`;
+
+  const w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
 }
 
 function campSwitchTab(tab,el){

@@ -224,6 +224,7 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
 
     <!-- OVERVIEW -->
     <div id="cv-overview" class="cview active">
+      <!-- KPI Strip -->
       <div class="kstrip">
         <div class="kpi"><div class="klabel">Spend</div><div class="kval" id="k-spend">—</div></div>
         <div class="kpi"><div class="klabel">Impressions</div><div class="kval" id="k-imp">—</div></div>
@@ -235,30 +236,49 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
         <div class="kpi"><div class="klabel">Revenue</div><div class="kval" id="k-rev">—</div></div>
         <div class="kpi"><div class="klabel">ROAS</div><div class="kval" id="k-roas">—</div></div>
       </div>
-      <div class="g75">
-        <div class="ccard">
-          <div class="ctitle">Spend by objective & Revenue</div>
-          <div class="lbar"><span><span class="lsq" style="background:#E4C97A"></span>Branding</span><span><span class="lsq" style="background:#A67C00"></span>Conversion</span><span><span class="lline" style="border-color:#1B4332"></span>Revenue</span></div>
-          <div style="position:relative;height:190px"><canvas id="trendChart">.</canvas></div>
-        </div>
-        <div class="ccard">
-          <div class="ctitle">Spend by Geo & Revenue</div>
-          <div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lline" style="border-color:#1B4332"></span>Revenue</span></div>
-          <div style="position:relative;height:190px"><canvas id="bookChart">.</canvas></div>
+
+      <!-- Row 1: Spend by objective & Revenue (full width) -->
+      <div class="ccard" style="margin-bottom:18px">
+        <div class="ctitle">Spend by objective & Revenue</div>
+        <div class="lbar"><span><span class="lsq" style="background:#E4C97A"></span>Branding</span><span><span class="lsq" style="background:#A67C00"></span>Conversion</span><span><span class="lline" style="border-color:#1B4332"></span>Revenue</span></div>
+        <div style="position:relative;height:200px"><canvas id="trendChart">.</canvas></div>
+      </div>
+
+      <!-- Row 2: Spend by Geo & Revenue (overall) -->
+      <div class="ccard" style="margin-bottom:18px">
+        <div class="ctitle">Spend by Geo & Revenue <span style="font-size:11px;color:#bbb;font-weight:400;margin-left:8px">overall</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center">
+          <div>
+            <div class="lbar" style="margin-bottom:14px"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lsq" style="background:#1a1a2e"></span>Revenue</span></div>
+            <div style="position:relative;height:200px"><canvas id="bookChart">.</canvas></div>
+          </div>
+          <div id="geo-overview-legend" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
       </div>
-      <div class="g75">
+
+      <!-- Row 3: Branding vs Conversion (side by side) -->
+      <div class="g2" style="margin-bottom:18px">
         <div class="ccard">
-          <div class="ctitle">Monthly performance</div>
-          <div style="overflow-x:auto"><table class="tbl" style="min-width:660px">
-            <thead><tr><th class="l">Month</th><th>Spend</th><th>Imp.</th><th>CPM</th><th>Clicks</th><th>CPC</th><th>CTR</th><th>Booking</th><th>CPA</th><th>Revenue</th><th>ROAS</th></tr></thead>
-            <tbody id="monthly-tbody"><tr><td class="l" colspan="11" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
-          </table></div>
+          <div class="ctitle" style="display:flex;align-items:center;gap:8px">
+            <span style="width:10px;height:10px;border-radius:50%;background:#E4C97A;display:inline-block"></span>Branding / Traffic
+          </div>
+          <div id="br-summary">Loading...</div>
         </div>
         <div class="ccard">
-          <div class="ctitle">Branding vs Conversion</div>
-          <div id="obj-summary" style="color:#bbb;font-size:12px;padding:20px 0">Loading...</div>
+          <div class="ctitle" style="display:flex;align-items:center;gap:8px">
+            <span style="width:10px;height:10px;border-radius:50%;background:#A67C00;display:inline-block"></span>Conversion
+          </div>
+          <div id="cv-summary">Loading...</div>
         </div>
+      </div>
+
+      <!-- Row 4: Monthly performance (full width, bottom) -->
+      <div class="ccard">
+        <div class="ctitle">Monthly performance</div>
+        <div style="overflow-x:auto"><table class="tbl" style="min-width:660px">
+          <thead><tr><th class="l">Month</th><th>Spend</th><th>Imp.</th><th>CPM</th><th>Clicks</th><th>CPC</th><th>CTR</th><th>Booking</th><th>CPA</th><th>Revenue</th><th>ROAS</th></tr></thead>
+          <tbody id="monthly-tbody"><tr><td class="l" colspan="11" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
+        </table></div>
       </div>
     </div>
 
@@ -640,25 +660,24 @@ function campRenderObjSummary(){
     return `<tr><td class="l">${ch}</td><td>${f(cS)}</td><td>${cB||'—'}</td><td>${roas}</td></tr>`;
   }).join('');
 
-  document.getElementById('obj-summary').innerHTML=`
-    <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:10px;display:flex;align-items:center;gap:6px">
-      <span style="width:9px;height:9px;border-radius:50%;background:#E4C97A;display:inline-block"></span>Branding / Traffic
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+  // Branding card
+  const brEl=document.getElementById('br-summary');
+  if(brEl) brEl.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
       <div class="mini-s"><div class="klabel">Spend</div><div class="kval" style="font-size:14px">${f(brS)}</div></div>
       <div class="mini-s"><div class="klabel">Impressions</div><div class="kval" style="font-size:14px">${fn(brI)}</div></div>
       <div class="mini-s"><div class="klabel">Clicks</div><div class="kval" style="font-size:14px">${fn(brCl)}</div></div>
       <div class="mini-s"><div class="klabel">CTR</div><div class="kval" style="font-size:14px">${brCtr}</div></div>
     </div>
-    <table class="tbl" style="margin-bottom:20px">
+    <table class="tbl">
       <thead><tr><th class="l">Channel</th><th>Spend</th><th>Clicks</th><th>CTR</th></tr></thead>
       <tbody>${brChanRows}<tr class="tot"><td class="l">Total</td><td>${f(brS)}</td><td>${fn(brCl)}</td><td>${brCtr}</td></tr></tbody>
-    </table>
+    </table>`;
 
-    <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:10px;display:flex;align-items:center;gap:6px">
-      <span style="width:9px;height:9px;border-radius:50%;background:#A67C00;display:inline-block"></span>Conversion
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+  // Conversion card
+  const cvEl=document.getElementById('cv-summary');
+  if(cvEl) cvEl.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
       <div class="mini-s"><div class="klabel">Spend</div><div class="kval" style="font-size:14px">${f(cvS)}</div></div>
       <div class="mini-s"><div class="klabel">ROAS</div><div class="kval" style="font-size:14px">${cvS>0?(cvR/cvS).toFixed(2)+'x':'—'}</div></div>
       <div class="mini-s"><div class="klabel">Booking</div><div class="kval" style="font-size:14px">${cvB}</div></div>
@@ -684,26 +703,48 @@ function campDrawTrend(d){
 }
 
 function campDrawBooking(d){
-  // Build geo data from ATTR_DATA for same period months
-  const geoCountries = [...new Set(ATTR_DATA.map(r=>r.country))].slice(0,5);
-  const geoColors = ['#1a1a2e','#2d6a4f','#52a07a','#8fc4a8','#C4982A'];
-  const labels = d.map(x=>x.l.split(' ')[0]);
-  const geoDatasets = geoCountries.map((c,ci)=>({
-    type:'bar',label:c,
-    data:d.map(x=>{
-      const[mo,yr]=x.l.split(' ').map((v,i)=>i===0?['Oct','Nov','Dec','Jan','Feb','Mar','Apr'].indexOf(v)+10:parseInt(v));
-      return ATTR_DATA.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.revenue,0);
-    }),
-    backgroundColor:geoColors[ci],borderRadius:ci===geoCountries.length-1?[3,3,0,0]:0,
-    stack:'geo',yAxisID:'y',barPercentage:0.5,categoryPercentage:0.65
-  }));
-  const revDataset={type:'line',label:'Total Revenue',data:d.map(x=>x.r),borderColor:'#1B4332',backgroundColor:'rgba(27,67,50,.05)',pointBackgroundColor:'#fff',pointBorderColor:'#1B4332',pointBorderWidth:2,pointRadius:3,borderWidth:2,tension:0.4,yAxisID:'y2',fill:true};
+  // Overall geo: aggregate all ATTR_DATA — top countries by revenue
+  const geoAgg={};
+  ATTR_DATA.forEach(r=>{
+    if(!geoAgg[r.country]) geoAgg[r.country]={spend:0,revenue:0};
+    geoAgg[r.country].revenue+=r.revenue;
+  });
+  // Also aggregate spend from CAMP_DATA geo (approximation — total spend distributed)
+  const geoSorted=Object.entries(geoAgg).sort((a,b)=>b[1].revenue-a[1].revenue).slice(0,8);
+  const labels=geoSorted.map(([c])=>c);
+  const spendData=geoSorted.map(()=>0); // no geo spend breakdown available
+  const revData=geoSorted.map(([,v])=>v);
+
+  // Update legend
+  const legEl=document.getElementById('geo-overview-legend');
+  if(legEl){
+    const colors=['#1a1a2e','#C4982A','#2d6a4f','#E4C97A','#52a07a','#8fc4a8','#b0b0a0','#d4a853'];
+    legEl.innerHTML=geoSorted.map(([c,v],i)=>`
+      <div style="display:flex;align-items:center;gap:10px;font-size:12px">
+        <span style="width:10px;height:10px;border-radius:3px;background:${colors[i]};flex-shrink:0"></span>
+        <span style="color:#555;flex:1">${c}</span>
+        <span style="font-weight:700;color:#1a1a2e">${f(v.revenue)}</span>
+      </div>`).join('');
+  }
+
   if(bC)bC.destroy();
-  bC=new Chart(document.getElementById('bookChart'),{type:'bar',data:{labels,datasets:[...geoDatasets,revDataset]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+f(ctx.raw)}}},scales:{
-    x:{stacked:true,ticks:{font:{size:9}},grid:{display:false}},
-    y:{stacked:true,ticks:{font:{size:9},callback:v=>'฿'+(v/1000).toFixed(0)+'k'},grid:{color:'rgba(0,0,0,.04)'}},
-    y2:{position:'right',min:0,ticks:{font:{size:9},callback:v=>v===0?'':'฿'+(v/1000).toFixed(0)+'k'},grid:{display:false}}
-  }}});
+  bC=new Chart(document.getElementById('bookChart'),{
+    type:'bar',
+    data:{labels,datasets:[{
+      label:'Revenue',data:revData,
+      backgroundColor:['#1a1a2e','#C4982A','#2d6a4f','#E4C97A','#52a07a','#8fc4a8','#b0b0a0','#d4a853'],
+      borderRadius:6,barPercentage:0.6,categoryPercentage:0.7
+    }]},
+    options:{
+      indexAxis:'y',
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' Revenue: '+f(ctx.raw)}}},
+      scales:{
+        x:{ticks:{font:{size:9},callback:v=>f(v)},grid:{color:'rgba(0,0,0,.04)'}},
+        y:{ticks:{font:{size:10}},grid:{display:false}}
+      }
+    }
+  });
 }
 
 function campRenderBreakdown(){

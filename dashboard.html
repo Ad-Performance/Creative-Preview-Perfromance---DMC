@@ -836,10 +836,10 @@ function campRenderHeatmaps(){
   const ciLabels=ciKeys.map(k=>{const[m,y]=k.split('-').map(Number);return MON_NAMES[m]+' '+(y+'').slice(2);});
   const countries=[...new Set(attrRows.map(r=>r.country))].sort();
 
-  // Sort countries by total revenue desc
+  // Sort countries by total revenue desc (using filtered attrRows)
   const countryTotRev={};
   countries.forEach(c=>{countryTotRev[c]=attrRows.filter(r=>r.country===c).reduce((a,r)=>a+r.revenue,0);});
-  countries.sort((a,b)=>countryTotRev[b]-countryTotRev[a]);
+  countries.sort((a,b)=>(countryTotRev[b]||0)-(countryTotRev[a]||0));
 
   const headHtml='<th>Country</th>'+ciLabels.map(l=>`<th>${l}</th>`).join('')+'<th>Total</th>';
   document.getElementById('rev-heat-head').innerHTML=headHtml;

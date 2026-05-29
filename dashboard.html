@@ -743,11 +743,13 @@ function campDrawGeo(){
   const byRev=Object.entries(agg).sort((a,b)=>b[1].rev-a[1].rev).slice(0,7);
   const bySpend=Object.entries(agg).sort((a,b)=>b[1].spend-a[1].spend).slice(0,7);
   function mkDonut(elId,entries,vals,colors,legId,fmt){
+    fmt=fmt||f;
+    const total=vals.reduce((a,v)=>a+v,0);
     const el=document.getElementById(elId);if(!el)return;
     if(el._c)el._c.destroy();
-    el._c=new Chart(el,{type:'doughnut',data:{labels:entries,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)}`}}}}});
+    el._c=new Chart(el,{type:'doughnut',data:{labels:entries,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)} (${total>0?((ctx.raw/total)*100).toFixed(1):0}%)`}}}}});
     const leg=document.getElementById(legId);
-    if(leg)leg.innerHTML=entries.map((c,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${colors[i]}"></span>${c}<span class="dl-val">${fmt(vals[i])}</span></div>`).join('');
+    if(leg)leg.innerHTML=entries.map((c,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${colors[i]}"></span>${c}<span class="dl-val">${fmt(vals[i])} <span style="color:#bbb;font-weight:400">(${total>0?((vals[i]/total)*100).toFixed(1):0}%)</span></span></div>`).join('');
   }
   // Master color map
   const allC=[...new Set([...bySpend.map(([c])=>c),...byRev.map(([c])=>c)])];
@@ -787,10 +789,11 @@ function campRenderGeo(){
   const byBk=[...all].sort((a,b)=>b[1].b-a[1].b).slice(0,7);
   function mkDonutS(id,labs,vals,colors,legId,fmt){
     fmt=fmt||f;
+    const total=vals.reduce((a,v)=>a+v,0);
     const el=document.getElementById(id);if(!el)return;if(el._c)el._c.destroy();
-    el._c=new Chart(el,{type:'doughnut',data:{labels:labs,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)}`}}}}});
+    el._c=new Chart(el,{type:'doughnut',data:{labels:labs,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)} (${total>0?((ctx.raw/total)*100).toFixed(1):0}%)`}}}}});
     const leg=document.getElementById(legId);
-    if(leg)leg.innerHTML=labs.map((l,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${colors[i]}"></span>${l}<span class="dl-val">${fmt(vals[i])}</span></div>`).join('');
+    if(leg)leg.innerHTML=labs.map((l,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${colors[i]}"></span>${l}<span class="dl-val">${fmt(vals[i])} <span style="color:#bbb;font-weight:400">(${total>0?((vals[i]/total)*100).toFixed(1):0}%)</span></span></div>`).join('');
   }
   function mkBarS(id,labs,vals,color,tipFmt,axFmt){
     const el=document.getElementById(id);if(!el)return;if(el._c)el._c.destroy();
@@ -812,20 +815,48 @@ function campRenderHeatmaps(){
   const ciKeys=[...new Set(attrRows.map(r=>`${r.ci_month}-${r.ci_year}`))].sort((a,b)=>{const[am,ay]=a.split('-').map(Number);const[bm,by]=b.split('-').map(Number);return ay!==by?ay-by:am-bm;});
   const ciLabels=ciKeys.map(k=>{const[m,y]=k.split('-').map(Number);return MON_NAMES[m]+' '+(y+'').slice(2);});
   const countries=[...new Set(attrRows.map(r=>r.country))].sort();
-  const headHtml='<th>Country</th>'+ciLabels.map(l=>`<th>${l}</th>`).join('');
+
+  // Sort countries by total revenue desc
+  const countryTotRev={};
+  countries.forEach(c=>{countryTotRev[c]=attrRows.filter(r=>r.country===c).reduce((a,r)=>a+r.revenue,0);});
+  countries.sort((a,b)=>countryTotRev[b]-countryTotRev[a]);
+
+  const headHtml='<th>Country</th>'+ciLabels.map(l=>`<th>${l}</th>`).join('')+'<th>Total</th>';
   document.getElementById('rev-heat-head').innerHTML=headHtml;
   document.getElementById('rn-heat-head').innerHTML=headHtml;
   const maxRev=Math.max(...attrRows.map(r=>r.revenue),1);
   const maxRN=Math.max(...attrRows.map(r=>r.room_nights),1);
+
   function hCell(val,mx,isRev){if(!val)return'<td>—</td>';const p=val/mx;const cls=p>=0.55?'heat-hi':p>=0.25?'heat-md':'heat-lo';const d=isRev?Math.round(val/1000)+'k':val;return`<td class="${cls}"><span>${d}</span></td>`;}
-  document.getElementById('rev-heatmap-tbody').innerHTML=countries.map(c=>{
-    const cells=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);const v=attrRows.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.revenue,0);return hCell(v,maxRev,true);}).join('');
-    return`<tr><td>${c}</td>${cells}</tr>`;
-  }).join('');
-  document.getElementById('rn-heatmap-tbody').innerHTML=countries.map(c=>{
-    const cells=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);const v=attrRows.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.room_nights,0);return hCell(v,maxRN,false);}).join('');
-    return`<tr><td>${c}</td>${cells}</tr>`;
-  }).join('');
+  function plainCell(val,isRev){if(!val)return'<td style="color:#bbb;text-align:center">—</td>';const d=isRev?Math.round(val/1000)+'k':val;return`<td style="text-align:center;font-weight:700;color:#1a1a2e">${d}</td>`;}
+
+  // Revenue heatmap
+  let revRows='';
+  const revColTotals=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);return attrRows.filter(r=>r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.revenue,0);});
+  const revGrandTotal=attrRows.reduce((a,r)=>a+r.revenue,0);
+  countries.forEach(c=>{
+    const rowVals=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);return attrRows.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.revenue,0);});
+    const rowTotal=rowVals.reduce((a,v)=>a+v,0);
+    const cells=rowVals.map(v=>hCell(v,maxRev,true)).join('');
+    revRows+=`<tr><td>${c}</td>${cells}${plainCell(rowTotal,true)}</tr>`;
+  });
+  const revColTotCells=revColTotals.map(v=>plainCell(v,true)).join('');
+  revRows+=`<tr class="tot"><td>Grand total</td>${revColTotCells}${plainCell(revGrandTotal,true)}</tr>`;
+  document.getElementById('rev-heatmap-tbody').innerHTML=revRows;
+
+  // Room nights heatmap
+  let rnRows='';
+  const rnColTotals=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);return attrRows.filter(r=>r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.room_nights,0);});
+  const rnGrandTotal=attrRows.reduce((a,r)=>a+r.room_nights,0);
+  countries.forEach(c=>{
+    const rowVals=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);return attrRows.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.room_nights,0);});
+    const rowTotal=rowVals.reduce((a,v)=>a+v,0);
+    const cells=rowVals.map(v=>hCell(v,maxRN,false)).join('');
+    rnRows+=`<tr><td>${c}</td>${cells}${plainCell(rowTotal,false)}</tr>`;
+  });
+  const rnColTotCells=rnColTotals.map(v=>plainCell(v,false)).join('');
+  rnRows+=`<tr class="tot"><td>Grand total</td>${rnColTotCells}${plainCell(rnGrandTotal,false)}</tr>`;
+  document.getElementById('rn-heatmap-tbody').innerHTML=rnRows;
 }
 
 function campRenderBreakdown(){
@@ -846,12 +877,12 @@ function campRenderBreakdown(){
   document.getElementById('camp-tbody').innerHTML=html;
   // Donut helper for breakdown charts
   function mkBrkDonut(id,legId,labels,vals,colors,fmt){
+    const total=vals.reduce((a,v)=>a+v,0);
     const el=document.getElementById(id);if(!el)return;
     if(el._c)el._c.destroy();
-    el._c=new Chart(el,{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},
-      options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)}`}}}}});
+    el._c=new Chart(el,{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)} (${total>0?((ctx.raw/total)*100).toFixed(1):0}%)`}}}}});
     const leg=document.getElementById(legId);
-    if(leg)leg.innerHTML=labels.map((l,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${colors[i]}"></span>${l}<span class="dl-val">${fmt(vals[i])}</span></div>`).join('');
+    if(leg)leg.innerHTML=labels.map((l,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${colors[i]}"></span>${l}<span class="dl-val">${fmt(vals[i])} <span style="color:#bbb;font-weight:400">(${total>0?((vals[i]/total)*100).toFixed(1):0}%)</span></span></div>`).join('');
   }
   // Build channel color map
   const chanColorMap={};chans.forEach((c,i)=>{chanColorMap[c]=DC[i%DC.length];});

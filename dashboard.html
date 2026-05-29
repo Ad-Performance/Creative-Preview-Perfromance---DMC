@@ -757,7 +757,7 @@ function campRenderGeo(){
   Object.values(agg).forEach(v=>{v.abv=v.b>0?v.rev/v.b:0;v.avgN=v.b>0?v.nights_sum/v.b:0;v.avgBlt=v.b>0?v.blt_sum/v.b:0;});
   const t1Set=new Set(attrRows.filter(r=>String(r.tier).trim()==='1').map(r=>r.country));
   const t2Set=new Set(attrRows.filter(r=>String(r.tier).trim()==='2').map(r=>r.country));
-  const all=Object.entries(agg).sort((a,b)=>b[1].rev-a[1].rev);
+  const all=Object.entries(agg).sort((a,b)=>b[1].b-a[1].b);
   const t1=all.filter(([c])=>t1Set.has(c));
   const t2=all.filter(([c])=>t2Set.has(c));
   const tOth=all.filter(([c])=>!t1Set.has(c)&&!t2Set.has(c));
@@ -823,6 +823,8 @@ function campRenderBreakdown(){
   const rows=campGetRows();
   const camps=[...new Set(rows.map(r=>r.campaign))];
   const chans=[...new Set(rows.map(r=>r.channel))];
+  // Sort campaigns by spend desc
+  camps.sort((a,b)=>rows.filter(r=>r.campaign===b).reduce((s,r)=>s+r.spend,0)-rows.filter(r=>r.campaign===a).reduce((s,r)=>s+r.spend,0));
   let html='';
   camps.forEach(ca=>{
     const cr=rows.filter(r=>r.campaign===ca);
@@ -864,7 +866,11 @@ function campRenderChan(rows,chans){
     const[mo,yr]=MONTH_KEYS[i].split('-').map(Number);
     const mrows=rows.filter(r=>r.month===mo&&r.year===yr);
     if(!mrows.length)continue;
-    const mchans=[...new Set(mrows.map(r=>r.channel))];
+    // Sort: Branding channels first, then Conversion, each sorted by spend desc
+    const brChs=[...new Set(mrows.filter(r=>r.objective==='Branding').map(r=>r.channel))];
+    const cvChs=[...new Set(mrows.filter(r=>r.objective==='Conversion').map(r=>r.channel))];
+    const sortBySpend=(chs)=>chs.sort((a,b)=>mrows.filter(r=>r.channel===b).reduce((s,r)=>s+r.spend,0)-mrows.filter(r=>r.channel===a).reduce((s,r)=>s+r.spend,0));
+    const mchans=[...sortBySpend(brChs),...sortBySpend(cvChs)];
     mchans.forEach((ch,ci)=>{
       const cr=mrows.filter(r=>r.channel===ch);
       const cS=cr.reduce((a,r)=>a+r.spend,0),cI=cr.reduce((a,r)=>a+r.imp,0),cCl=cr.reduce((a,r)=>a+r.clicks,0),cB=cr.reduce((a,r)=>a+r.booking,0),cR=cr.reduce((a,r)=>a+r.revenue,0);

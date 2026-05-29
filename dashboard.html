@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diamond Cliff — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:100vh}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* HEADER */
+.header{background:#fff;padding:0 32px;position:sticky;top:0;z-index:100;box-shadow:0 1px 12px rgba(0,0,0,.08);border-bottom:1px solid #eee}
+.header-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:80px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo img{object-fit:contain;flex-shrink:0}
+.logo-sep{color:#ddd;font-size:20px;font-weight:200;margin:0 8px}
+.header-meta{font-size:12px;color:#aaa}
+
+/* MAIN NAV */
+.main-nav{background:#fff;border-bottom:2px solid #eee;padding:0 32px;position:sticky;top:80px;z-index:99}
+.main-nav-inner{max-width:1400px;margin:0 auto;display:flex}
+.mnav{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:13px 26px;border:none;background:transparent;color:#bbb;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
+.mnav.active{color:#1a1a2e;border-bottom-color:#1a1a2e}
+.mnav:hover:not(.active){color:#555}
+
+.dsection{display:none}.dsection.active{display:block}
+.main{max-width:1400px;margin:0 auto;padding:28px 24px}
+
+/* ── CREATIVE STYLES ── */
+.filter-bar{background:#fff;border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.filter-bar select,.filter-bar input[type=text]{padding:9px 14px;border-radius:10px;border:1.5px solid #e8e8e8;font-size:14px;outline:none;background:#fff;color:#1a1a2e;font-family:'Inter',sans-serif;cursor:pointer}
+.filter-bar input[type=text]{min-width:200px}
+.btn{padding:10px 20px;border-radius:10px;border:none;font-weight:600;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-dark{background:linear-gradient(135deg,#1a1a2e,#2d2d54);color:#fff}
+.btn-reload{background:#f5f5f5;color:#555;border:1.5px solid #e8e8e8}
+.count-badge{font-size:13px;color:#bbb;margin-left:auto}
+.page-title{font-size:34px;font-weight:800;color:#1a1a2e;margin-bottom:8px;letter-spacing:-.8px}
+.page-sub{color:#aaa;font-size:13px;margin-bottom:22px}
+.group-section{margin-bottom:36px;animation:fadeIn .4s ease}
+.group-header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1a1a2e;padding-bottom:8px;margin-bottom:14px}
+.group-title{font-size:18px;font-weight:700;color:#1a1a2e;letter-spacing:-.3px}
+.group-count{font-size:13px;color:#aaa;margin-left:10px}
+.toggle-table-btn{font-size:12px;color:#aaa;background:none;border:1px solid #e8e8e8;border-radius:8px;padding:4px 12px;cursor:pointer;font-family:'Inter',sans-serif}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.card-c{background:#fff;border-radius:12px;overflow:hidden;border:1.5px solid #eee;transition:transform .2s,box-shadow .2s}
+.card-c:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.card-c.top{border-color:#f7b731;box-shadow:0 0 0 2px #f7b73144}
+.card-img{position:relative;padding-top:68%;background:#f2efe9;overflow:hidden;cursor:zoom-in}
+.card-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s}
+.card-img img.ok{opacity:1}
+.placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.spinner{width:22px;height:22px;border:2.5px solid #e0dbd4;border-top-color:#ff6b35;border-radius:50%;animation:spin .8s linear infinite}
+.ch-badge{position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;color:#fff}
+.zoom-hint{position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.35);border-radius:5px;padding:1px 6px;font-size:9px;color:rgba(255,255,255,.8)}
+.card-body{padding:10px 12px}
+.card-name{font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:7px;line-height:1.4}
+.primary-kpi{text-align:center;padding:7px 4px;border-radius:8px;margin-bottom:6px}
+.kpi-label{font-size:10px;font-weight:500;color:#999;display:block;letter-spacing:.5px;text-transform:uppercase}
+.kpi-value{font-size:22px;font-weight:700;color:#1a6eb5;display:block;letter-spacing:-.5px}
+.other-kpis{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:5px}
+.kpi-chip{background:#f8f8f8;border-radius:5px;padding:3px 6px}
+.kpi-chip-lbl{opacity:.6;display:block;font-size:9px;font-weight:500;letter-spacing:.4px;text-transform:uppercase}
+.kpi-chip-val{font-weight:600;font-size:12px}
+.card-note{font-size:12px;margin-top:4px;line-height:1.4}
+.card-note.bad{color:#e55;font-weight:700}
+.card-note.ok2{color:#888}
+.table-wrap{overflow-x:auto;margin-top:14px;display:none}
+.table-wrap.open{display:block}
+.stbl{width:100%;border-collapse:collapse;font-size:13px}
+.stbl th{background:#22c55e;color:#fff;padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.stbl th:first-child{text-align:left}
+.stbl th:not(:first-child){text-align:right}
+.stbl td{padding:6px 12px;border-bottom:1px solid #f0f0f0}
+.stbl td:first-child{font-weight:600;color:#1a1a2e;text-align:left}
+.stbl td:not(:first-child){text-align:right;color:#555}
+.stbl .ctr-val{font-weight:700;color:#1a6eb5}
+.stbl tr:nth-child(even) td{background:#f9fafb}
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}
+#lb.open{display:flex}
+#lb img{max-width:90vw;max-height:88vh;border-radius:12px;object-fit:contain}
+#lb-x{position:absolute;top:20px;right:24px;color:#fff;font-size:28px;cursor:pointer}
+.state-box{text-align:center;padding:80px 20px;color:#ccc}
+.state-box .icon{font-size:48px;margin-bottom:12px}
+.err-box{background:#fff0f0;border:1.5px solid #ffc0c0;border-radius:12px;padding:20px 24px;margin-bottom:20px;font-size:13px;color:#c00;line-height:1.8}
+
+/* ── CAMPAIGN STYLES ── */
+.ctabs{display:flex;gap:4px;margin-bottom:20px;background:#fff;border-radius:12px;padding:4px;width:fit-content;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.ctab{font-size:13px;font-weight:500;padding:8px 20px;border:none;background:transparent;color:#bbb;cursor:pointer;border-radius:9px;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .18s}
+.ctab.active{background:#1a1a2e;color:#fff;font-weight:600}
+.ctab:hover:not(.active){background:#f5f5f5;color:#555}
+.cview{display:none}.cview.active{display:block;animation:fadeIn .3s ease}
+.kstrip{display:grid;grid-template-columns:repeat(9,1fr);gap:10px;margin-bottom:20px}
+.kpi{background:#fff;border-radius:12px;padding:14px 16px;border:1.5px solid #eee;transition:box-shadow .2s}
+.kpi:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.klabel{font-size:10px;color:#bbb;margin-bottom:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.kval{font-size:18px;font-weight:800;color:#1a1a2e;letter-spacing:-.5px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.g75{display:grid;grid-template-columns:7fr 5fr;gap:14px;margin-bottom:14px}
+.ccard{background:#fff;border-radius:12px;padding:18px 20px;border:1.5px solid #eee}
+.ctitle{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.csub{font-size:11px;color:#bbb;font-weight:400;margin-left:auto}
+.mini-s{background:#f7f5f2;border-radius:10px;padding:10px 14px}
+.mini-s .klabel{color:#bbb}.mini-s .kval{font-size:14px}
+.slbl{font-size:10px;font-weight:700;letter-spacing:.1em;color:#bbb;text-transform:uppercase;margin-bottom:12px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{color:#bbb;font-weight:700;text-align:right;padding:8px 10px;border-bottom:2px solid #f0f0f0;white-space:nowrap;font-size:10px;letter-spacing:.5px;text-transform:uppercase}
+.tbl th.l{text-align:left}
+.tbl td{padding:9px 10px;color:#1a1a2e;text-align:right;border-bottom:1px solid #f5f5f5}
+.tbl td.l{text-align:left;color:#555;font-weight:600}
+.tbl .tot td{font-weight:800;color:#1a1a2e;border-top:2px solid #f0f0f0;border-bottom:none;background:#f9fafb}
+.tbl tr:not(.tot):hover td{background:#fafaf9}
+.roas-hi{background:#dcfce7;color:#15803d;font-weight:700;border-radius:6px;padding:1px 7px;font-size:11px;display:inline-block}
+.roas-md{background:#fef9c3;color:#854d0e;font-weight:600;border-radius:6px;padding:1px 7px;font-size:11px;display:inline-block}
+.roas-lo{background:#fee2e2;color:#991b1b;font-weight:500;border-radius:6px;padding:1px 7px;font-size:11px;display:inline-block}
+.heat-hi,.heat-md,.heat-lo{text-align:center !important}
+.heat-hi span{display:inline-block;padding:2px 9px;border-radius:6px;background:#1a1a2e;color:#fff;font-weight:700;font-size:11px}
+.heat-md span{display:inline-block;padding:2px 9px;border-radius:6px;background:#404040;color:#fff;font-weight:600;font-size:11px}
+.heat-lo span{display:inline-block;padding:2px 9px;border-radius:6px;background:#e8e8e8;color:#555;font-weight:500;font-size:11px}
+.cross{width:100%;border-collapse:collapse;font-size:11px}
+.cross th{background:#1a1a2e;color:#fff;padding:9px 10px;text-align:right;white-space:nowrap;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.cross th:first-child{text-align:left}
+.cross td{padding:7px 10px;border-bottom:1px solid #f5f5f5;text-align:right;color:#1a1a2e}
+.cross td:first-child{text-align:left;color:#555;font-weight:600}
+.cross .tot td{font-weight:800;background:#f9fafb;border-top:2px solid #f0f0f0;color:#1a1a2e}
+.lbar{display:flex;gap:14px;margin-bottom:10px;font-size:11px;color:#bbb}
+.lbar span{display:flex;align-items:center;gap:5px}
+.lsq{width:9px;height:9px;border-radius:2px;display:inline-block;flex-shrink:0}
+.lline{width:18px;height:0;border-top:2px solid;display:inline-block;flex-shrink:0;margin-top:5px}
+.donut-row{display:flex;align-items:center;gap:20px}
+.donut-legend{display:flex;flex-direction:column;gap:7px}
+.dl-item{display:flex;align-items:center;gap:8px;font-size:11px;color:#555}
+.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dl-val{font-weight:700;color:#1a1a2e;margin-left:auto}
+@media(max-width:1200px){.g3{grid-template-columns:1fr 1fr}.g75{grid-template-columns:1fr}}
+@media(max-width:1024px){.kstrip{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr}}
+@media(max-width:768px){.main{padding:14px}.kstrip{grid-template-columns:repeat(2,1fr)}.ctabs{overflow-x:auto}.g2,.g3,.g75{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <img id="wc-logo" src="" alt="Web Connection" style="height:40px">
+      <span class="logo-sep">×</span>
+      <img id="dc-logo" src="" alt="Diamond Cliff" style="height:72px;margin-top:-4px">
+    </div>
+    <span class="header-meta" id="last-updated"></span>
+  </div>
+</div>
+
+<div id="lb" onclick="closeLB()">
+  <span id="lb-x" onclick="closeLB()">✕</span>
+  <img id="lb-img" src="" alt=""/>
+</div>
+
+<div class="main-nav">
+  <div class="main-nav-inner">
+    <button class="mnav active" onclick="switchMain('creative',this)">🖼 Creative Preview</button>
+    <button class="mnav" onclick="switchMain('campaign',this)">📊 Campaign Performance</button>
+  </div>
+</div>
+
+<!-- ══ CREATIVE ══ -->
+<div id="dsec-creative" class="dsection active">
+  <div class="main">
+    <h1 class="page-title">Creative Preview & Performance</h1>
+    <div class="filter-bar">
+      <input type="text" id="search" placeholder="🔍 Search creative..." oninput="render()">
+      <select id="fy" onchange="render()"><option value="">All Years</option></select>
+      <select id="fm" onchange="render()">
+        <option value="">All Months</option>
+        <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+        <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+        <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+        <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+      </select>
+      <select id="fc" onchange="render()"><option value="">All Channels</option></select>
+      <span class="count-badge" id="cnt"></span>
+      <button class="btn btn-reload" onclick="loadData()">↻ Refresh</button>
+      <button class="btn btn-dark" onclick="exportPDF()">📄 Export PDF</button>
+    </div>
+    <div id="app"></div>
+  </div>
+</div>
+
+<!-- ══ CAMPAIGN ══ -->
+<div id="dsec-campaign" class="dsection">
+  <div class="main">
+    <h1 class="page-title">Campaign Performance</h1>
+    <p class="page-sub">Diamond Cliff Resort & Spa · <span id="period-label">Oct 2025 → Apr 2026</span></p>
+
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #eee;border-radius:10px;padding:6px 12px">
+        <span style="font-size:11px;color:#bbb">Period</span>
+        <select id="sm" onchange="campUpdateRange()" style="border:none;background:transparent;font-size:12px;color:#1a1a2e;outline:none;font-family:'Inter',sans-serif">
+          <option value="0">Oct 2025</option><option value="1">Nov 2025</option><option value="2">Dec 2025</option>
+          <option value="3">Jan 2026</option><option value="4">Feb 2026</option><option value="5">Mar 2026</option>
+          <option value="6">Apr 2026</option>
+        </select>
+        <span style="color:#ccc">→</span>
+        <select id="em" onchange="campUpdateRange()" style="border:none;background:transparent;font-size:12px;color:#1a1a2e;outline:none;font-family:'Inter',sans-serif">
+          <option value="0">Oct 2025</option><option value="1">Nov 2025</option><option value="2">Dec 2025</option>
+          <option value="3">Jan 2026</option><option value="4">Feb 2026</option><option value="5">Mar 2026</option>
+          <option value="6" selected>Apr 2026</option>
+        </select>
+      </div>
+      <button onclick="campSetAll()" style="font-size:11px;font-weight:600;padding:7px 14px;border-radius:8px;border:1.5px solid #e8e8e8;background:#f5f5f5;color:#555;cursor:pointer;font-family:'Inter',sans-serif">All time</button>
+    </div>
+
+    <div class="ctabs">
+      <div class="ctab active" onclick="campSwitchTab('overview',this)">Overview</div>
+      <div class="ctab" onclick="campSwitchTab('breakdown',this)">Campaign & channel</div>
+      <div class="ctab" onclick="campSwitchTab('geoattr',this)">Geo & attribution</div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div id="cv-overview" class="cview active">
+      <div class="kstrip">
+        <div class="kpi"><div class="klabel">Spend</div><div class="kval" id="k-spend">—</div></div>
+        <div class="kpi"><div class="klabel">Impressions</div><div class="kval" id="k-imp">—</div></div>
+        <div class="kpi"><div class="klabel">CPM</div><div class="kval" id="k-cpm">—</div></div>
+        <div class="kpi"><div class="klabel">Clicks</div><div class="kval" id="k-clicks">—</div></div>
+        <div class="kpi"><div class="klabel">CPC</div><div class="kval" id="k-cpc">—</div></div>
+        <div class="kpi"><div class="klabel">CTR</div><div class="kval" id="k-ctr">—</div></div>
+        <div class="kpi"><div class="klabel">Booking</div><div class="kval" id="k-booking">—</div></div>
+        <div class="kpi"><div class="klabel">Revenue</div><div class="kval" id="k-rev">—</div></div>
+        <div class="kpi"><div class="klabel">ROAS</div><div class="kval" id="k-roas">—</div></div>
+      </div>
+      <div class="g75">
+        <div class="ccard">
+          <div class="ctitle">Spend by objective & Revenue</div>
+          <div class="lbar"><span><span class="lsq" style="background:#E4C97A"></span>Branding</span><span><span class="lsq" style="background:#A67C00"></span>Conversion</span><span><span class="lline" style="border-color:#1B4332"></span>Revenue</span></div>
+          <div style="position:relative;height:190px"><canvas id="trendChart">.</canvas></div>
+        </div>
+        <div class="ccard">
+          <div class="ctitle">Spend vs Booking</div>
+          <div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lline" style="border-color:#1a1a2e"></span>Booking</span></div>
+          <div style="position:relative;height:190px"><canvas id="bookChart">.</canvas></div>
+        </div>
+      </div>
+      <div class="g75">
+        <div class="ccard">
+          <div class="ctitle">Monthly performance</div>
+          <div style="overflow-x:auto"><table class="tbl" style="min-width:660px">
+            <thead><tr><th class="l">Month</th><th>Spend</th><th>Imp.</th><th>CPM</th><th>Clicks</th><th>CPC</th><th>CTR</th><th>Booking</th><th>CPA</th><th>Revenue</th><th>ROAS</th></tr></thead>
+            <tbody id="monthly-tbody"><tr><td class="l" colspan="11" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
+          </table></div>
+        </div>
+        <div class="ccard">
+          <div class="ctitle">Branding vs Conversion</div>
+          <div id="obj-summary" style="color:#bbb;font-size:12px;padding:20px 0">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAMPAIGN BREAKDOWN -->
+    <div id="cv-breakdown" class="cview">
+      <div class="ccard" style="margin-bottom:14px">
+        <div class="ctitle">Campaign breakdown</div>
+        <div style="overflow-x:auto"><table class="tbl" style="min-width:760px">
+          <thead><tr><th class="l">Campaign</th><th>Spend</th><th>Impressions</th><th>CPM</th><th>Clicks</th><th>CPC</th><th>CTR</th><th>Booking</th><th>CPA</th><th>CVR</th><th>Revenue</th><th>ROAS</th></tr></thead>
+          <tbody id="camp-tbody"><tr><td class="l" colspan="12" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
+        </table></div>
+      </div>
+      <div class="g3">
+        <div class="ccard"><div class="ctitle">Spend vs Revenue<span class="csub">by campaign</span></div><div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lsq" style="background:#1a1a2e"></span>Revenue</span></div><div style="position:relative;height:180px"><canvas id="c1">.</canvas></div></div>
+        <div class="ccard"><div class="ctitle">Spend vs Clicks<span class="csub">by channel</span></div><div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lsq" style="background:#1a1a2e"></span>Clicks</span></div><div style="position:relative;height:180px"><canvas id="c2">.</canvas></div></div>
+        <div class="ccard"><div class="ctitle">Spend vs Revenue<span class="csub">by channel</span></div><div class="lbar"><span><span class="lsq" style="background:#C4982A"></span>Spend</span><span><span class="lsq" style="background:#1a1a2e"></span>Revenue</span></div><div style="position:relative;height:180px"><canvas id="c3">.</canvas></div></div>
+      </div>
+      <div class="ccard">
+        <div class="ctitle">Channel breakdown<span id="chan-label" class="csub"></span></div>
+        <div style="overflow-x:auto" id="chan-wrap"><div style="color:#bbb;padding:20px 0;font-size:12px">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- GEO & ATTRIBUTION -->
+    <div id="cv-geoattr" class="cview">
+      <div class="slbl">Geo performance</div>
+      <div class="g2">
+        <div class="ccard">
+          <div class="ctitle">Tier 1 — primary markets</div>
+          <div style="overflow-x:auto"><table class="tbl">
+            <thead><tr><th class="l">Country</th><th>Spend</th><th>Imp.</th><th>Clicks</th><th>Booking</th><th>Revenue</th></tr></thead>
+            <tbody id="geo-t1-tbody"><tr><td class="l" colspan="6" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
+          </table></div>
+        </div>
+        <div class="ccard">
+          <div class="ctitle">Others geo</div>
+          <div style="overflow-x:auto"><table class="tbl">
+            <thead><tr><th class="l">Country</th><th>Spend</th><th>Imp.</th><th>Clicks</th><th>Booking</th><th>Revenue</th></tr></thead>
+            <tbody id="geo-t2-tbody"><tr><td class="l" colspan="6" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+      <div class="slbl" style="margin-top:6px">Attribution — XPO by Knorex</div>
+      <div class="g75">
+        <div class="ccard">
+          <div class="ctitle">Market sources</div>
+          <div style="overflow-x:auto"><table class="tbl">
+            <thead><tr><th class="l">Country</th><th>Bookings</th><th>ABV</th><th>Revenue</th><th>Avg nights</th><th>BLT (days)</th></tr></thead>
+            <tbody id="attr-tbody"><tr><td class="l" colspan="6" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
+          </table></div>
+        </div>
+        <div class="ccard">
+          <div class="ctitle">Revenue by market</div>
+          <div class="donut-row">
+            <div style="position:relative;width:140px;height:140px;flex-shrink:0"><canvas id="geoDonut">.</canvas></div>
+            <div class="donut-legend" id="geo-donut-legend" style="min-width:120px"></div>
+          </div>
+          <div style="margin-top:14px">
+            <div class="slbl" style="margin-bottom:8px">Booking lead time</div>
+            <div id="blt-bars"></div>
+          </div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="ccard">
+          <div class="ctitle">Revenue contribution<span class="csub">country × checkin month (฿)</span></div>
+          <div style="overflow-x:auto"><table class="cross">
+            <thead><tr id="rev-heat-head"><th>Country</th></tr></thead>
+            <tbody id="rev-heatmap-tbody"></tbody>
+          </table></div>
+        </div>
+        <div class="ccard">
+          <div class="ctitle">Room nights contribution<span class="csub">country × checkin month</span></div>
+          <div style="overflow-x:auto"><table class="cross">
+            <thead><tr id="rn-heat-head"><th>Country</th></tr></thead>
+            <tbody id="rn-heatmap-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<!-- LOGOS -->
+<script>
+const WC_LOGO = "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";
+const DC_LOGO = "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";
+document.getElementById('wc-logo').src = 'data:image/jpeg;base64,' + WC_LOGO;
+document.getElementById('dc-logo').src = 'data:image/jpeg;base64,' + DC_LOGO;
+</script>
+
+<!-- CREATIVE JS -->
+<script>
+const SHEET_ID  = "1F9Qcypy53pYKz5Y-V_MAKzudYErN6B9g";
+const SHEET_GID = "512478058";
+const CH = {Facebook:"#1877f2",Instagram:"#e1306c",Google:"#ea4335",YouTube:"#ff0000",TikTok:"#010101",Line:"#06c755","Twitter/X":"#000",Other:"#888"};
+const MO = ["","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+let DATA = [];
+
+function ctrBg(v){const n=parseFloat(String(v||"").replace("%",""));if(isNaN(n))return"transparent";if(n>=5)return"#f7b731";if(n>=3)return"#ffd97d";if(n>=2)return"#fff3cd";return"transparent";}
+function thumb(url){if(!url)return"";const m=url.match(/\/d\/([a-zA-Z0-9_-]+)/);return m?`https://drive.google.com/thumbnail?id=${m[1]}&sz=w600`:"";}
+
+async function loadData(){
+  document.getElementById("app").innerHTML=`<div class="state-box"><div class="spinner" style="margin:0 auto 12px;width:36px;height:36px;border-width:3px"></div><p>Loading from Google Sheet...</p></div>`;
+  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}`;
+  try{
+    const res=await fetch(url);
+    const txt=await res.text();
+    const json=JSON.parse(txt.replace(/^[^{]+/,"").replace(/\);?\s*$/,""));
+    DATA=parseGviz(json);
+    document.getElementById("last-updated").textContent="Updated "+new Date().toLocaleTimeString("en-GB");
+    buildFilters();render();
+  }catch(e){
+    document.getElementById("app").innerHTML=`<div class="err-box"><b>⚠️ Failed to load</b> — Check Sheet is public.<br><small>${e.message}</small></div>`;
+  }
+}
+
+function parseGviz(json){
+  const rows=json.table.rows;const result=[];
+  for(const row of rows){
+    const v=row.c||[];
+    const get=i=>{const cell=v[i];if(!cell||cell.v===null||cell.v===undefined)return"";if(cell.f!==undefined&&cell.f!==null&&cell.f!=="")return String(cell.f);return String(cell.v);};
+    const m=parseInt(get(0));if(isNaN(m)||m<1||m>12)continue;if(!get(3)&&!get(2))continue;
+    result.push({Month:get(0),Year:get(1),"Campaign Group":get(2),"Creative Name":get(3),Channel:get(4),"Drive Link":get(5),"CTR (%)":get(6),"CPC (฿)":get(7),"CPM (฿)":get(8),ROAS:get(9),Impressions:get(10),Clicks:get(11),"Spend (฿)":get(12),"Status / Note":get(13),"Uploaded By":get(14)});
+  }
+  const seen=new Set();
+  return result.filter(r=>{const key=`${r["Creative Name"]}|${r.Month}|${r.Year}|${r["Campaign Group"]}|${r.Channel}`;if(seen.has(key))return false;seen.add(key);return true;});
+}
+
+function buildFilters(){
+  const years=[...new Set(DATA.map(d=>d.Year).filter(Boolean))].sort().reverse();
+  const chs=[...new Set(DATA.map(d=>d.Channel).filter(Boolean))].sort();
+  document.getElementById("fy").innerHTML='<option value="">All Years</option>'+years.map(y=>`<option>${y}</option>`).join("");
+  document.getElementById("fc").innerHTML='<option value="">All Channels</option>'+chs.map(c=>`<option>${c}</option>`).join("");
+}
+
+function filtered(){
+  const s=document.getElementById("search").value.toLowerCase();
+  const y=document.getElementById("fy").value;
+  const m=document.getElementById("fm").value;
+  const c=document.getElementById("fc").value;
+  return DATA.filter(d=>{if(y&&d.Year!==y)return false;if(m&&d.Month!==m)return false;if(c&&d.Channel!==c)return false;if(s&&!(d["Creative Name"]||"").toLowerCase().includes(s)&&!(d["Campaign Group"]||"").toLowerCase().includes(s))return false;return true;});
+}
+
+function render(){
+  const data=filtered();
+  document.getElementById("cnt").textContent=data.length+" creatives";
+  const groups={};data.forEach(d=>{const g=d["Campaign Group"]||"Ungrouped";if(!groups[g])groups[g]=[];groups[g].push(d);});
+  const app=document.getElementById("app");
+  if(!data.length){app.innerHTML=`<div class="state-box"><div class="icon">📭</div><p>No creatives found</p></div>`;return;}
+  app.innerHTML=Object.entries(groups).map(([g,items])=>renderGroup(g,items)).join("");
+  lazyLoad();
+}
+
+function renderGroup(g,items){
+  const id="g"+Math.random().toString(36).slice(2);
+  const cards=items.map(renderCard).join("");
+  const trows=items.map(d=>{const ctr=d["CTR (%)"]||"—";return`<tr><td>${d["Creative Name"]||"—"}</td><td>${d["Spend (฿)"]||"—"}</td><td>${d.Impressions||"—"}</td><td>${d["CPM (฿)"]||"—"}</td><td>${d.Clicks||"—"}</td><td>${d["CPC (฿)"]||"—"}</td><td class="ctr-val" style="background:${ctrBg(ctr)}">${ctr}</td></tr>`;}).join("");
+  return`<div class="group-section"><div class="group-header"><div><span class="group-title">${g}</span><span class="group-count">${items.length} creatives</span></div><button class="toggle-table-btn" onclick="toggleTbl('${id}',this)">▼ Show KPI Table</button></div><div class="cards-grid">${cards}</div><div class="table-wrap" id="${id}"><table class="stbl"><thead><tr><th>Creative</th><th>Spend</th><th>Impressions</th><th>CPM</th><th>Clicks</th><th>CPC</th><th>CTR</th></tr></thead><tbody>${trows}</tbody></table></div></div>`;
+}
+
+function renderCard(d){
+  const ctr=d["CTR (%)"]||"";const t=thumb(d["Drive Link"]||"");const note=d["Status / Note"]||"";
+  const isTop=parseFloat(ctr.replace("%",""))>=5;
+  const chColor=CH[d.Channel]||"#888";
+  const others=[["CPC",d["CPC (฿)"]],["CPM",d["CPM (฿)"]],["Imp.",d.Impressions],["Spend",d["Spend (฿)"]]].filter(([,v])=>v).slice(0,4).map(([k,v])=>`<div class="kpi-chip"><span class="kpi-chip-lbl">${k}</span><span class="kpi-chip-val">${v}</span></div>`).join("");
+  return`<div class="card-c${isTop?" top":""}"><div class="card-img" onclick="openLB('${t}')"><div class="placeholder"><div class="spinner"></div></div>${t?`<img data-src="${t}" alt="${d["Creative Name"]}" onload="this.classList.add('ok');this.previousElementSibling.style.display='none'" onerror="this.style.display='none'">`:""}<div class="ch-badge" style="background:${chColor}cc">${d.Channel||""}</div><div class="zoom-hint">🔍</div></div><div class="card-body"><div class="card-name">${d["Creative Name"]||"—"}</div>${ctr?`<div class="primary-kpi" style="background:${ctrBg(ctr)}"><span class="kpi-label">CTR</span><span class="kpi-value">${ctr}</span></div>`:""}<div class="other-kpis">${others}</div>${note?`<div class="card-note ${note.toLowerCase().includes("pause")?"bad":"ok2"}">${note}</div>`:""}</div></div>`;
+}
+
+function lazyLoad(){const imgs=document.querySelectorAll("img[data-src]");if(!("IntersectionObserver" in window)){imgs.forEach(i=>i.src=i.dataset.src);return;}const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.src=e.target.dataset.src;obs.unobserve(e.target);}});},{rootMargin:"300px"});imgs.forEach(i=>obs.observe(i));}
+function toggleTbl(id,btn){const el=document.getElementById(id);el.classList.toggle("open");btn.textContent=el.classList.contains("open")?"▲ Hide Table":"▼ Show KPI Table";}
+function openLB(src){if(!src)return;document.getElementById("lb-img").src=src;document.getElementById("lb").classList.add("open");}
+function closeLB(){document.getElementById("lb").classList.remove("open");}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLB();});
+
+function exportPDF(){
+  const data=filtered();if(!data.length){alert("No data");return;}
+  const fy=document.getElementById("fy").value||"All Years";
+  const fm=document.getElementById("fm").value;
+  const label=[fy,fm?MO[parseInt(fm)]:"All Months"].join(" · ");
+  const groups={};data.forEach(d=>{const g=d["Campaign Group"]||"Ungrouped";if(!groups[g])groups[g]=[];groups[g].push(d);});
+  const body=Object.entries(groups).map(([g,items])=>{
+    const cards=items.map(d=>{const ctr=d["CTR (%)"]||"";const t=thumb(d["Drive Link"]||"");const others=[["CPC",d["CPC (฿)"]],["CPM",d["CPM (฿)"]],["Imp.",d.Impressions],["Spend",d["Spend (฿)"]]].filter(([,v])=>v).slice(0,4).map(([k,v])=>`<span class="kpi"><span class="kl">${k}</span> ${v}</span>`).join("");
+    return`<div class="card">${t?`<div class="iw"><img src="${t}" onerror="this.style.display='none'"/></div>`:"<div class='iw'></div>"}<div class="bd"><div class="nm">${d["Creative Name"]||"—"}</div>${ctr?`<div class="pk" style="background:${ctrBg(ctr)}"><span class="kl">CTR</span><b>${ctr}</b></div>`:""}<div class="kpis">${others}</div>${d["Status / Note"]?`<div class="nt">${d["Status / Note"]}</div>`:""}</div></div>`;}).join("");
+    return`<div class="grp"><div class="gt">${g}</div><div class="grid">${cards}</div></div>`;
+  }).join("");
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;padding:26px;color:#1a1a2e}.hdr{margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #1a1a2e}h1{font-size:20px;font-weight:800;margin-bottom:3px}.meta{font-size:11px;color:#aaa}.grp{margin-bottom:22px}.gt{font-size:14px;font-weight:700;border-bottom:2px solid #1a1a2e;padding-bottom:5px;margin-bottom:10px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.card{border:1px solid #eee;border-radius:9px;overflow:hidden;break-inside:avoid}.iw{width:100%;padding-top:65%;position:relative;background:#f5f3f0;overflow:hidden}.iw img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.bd{padding:7px 9px}.nm{font-size:10px;font-weight:600;margin-bottom:5px;line-height:1.3}.pk{text-align:center;padding:4px;border-radius:5px;margin-bottom:4px}.pk .kl{font-size:9px;color:#888;display:block}.pk b{font-size:14px;color:#1a6eb5;display:block}.kpis{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:3px}.kpi{background:#f8f8f8;border-radius:4px;padding:2px 5px;font-size:9px;color:#555}.kl{opacity:.55}.nt{font-size:9px;color:#e55;font-weight:700;margin-top:3px}@media print{.card{break-inside:avoid}}</style></head><body><div class="hdr"><h1>Creative Performance Report</h1><div class="meta">${label} · ${data.length} creatives · ${new Date().toLocaleDateString("en-GB",{year:"numeric",month:"long",day:"numeric"})}</div></div>${body}<script>window.onload=()=>window.print()<\/script></body></html>`;
+  const w=window.open("","_blank");w.document.write(html);w.document.close();
+}
+</script>
+
+<!-- CAMPAIGN JS -->
+<script>
+const CAMP_SHEET_ID = "1F9Qcypy53pYKz5Y-V_MAKzudYErN6B9g";
+const CAMP_GID      = "277450834";
+const ATTR_GID      = "578276760";
+
+const MONTHS    = ['Oct 2025','Nov 2025','Dec 2025','Jan 2026','Feb 2026','Mar 2026','Apr 2026'];
+const MONTH_KEYS= ['10-2025','11-2025','12-2025','1-2026','2-2026','3-2026','4-2026'];
+const DONUT_COLORS = ['#1a1a2e','#2d6a4f','#52a07a','#8fc4a8','#C4982A','#E4C97A','#aaaaaa'];
+
+let CAMP_DATA=[], ATTR_DATA=[], tC=null, bC=null, geoC=null, c1C=null, c2C=null, c3C=null;
+let campLoaded=false, chartsInited=false;
+
+const f  = n=>n>=1000000?'฿'+(n/1000000).toFixed(2)+'M':n>=1000?'฿'+(n/1000).toFixed(0)+'k':'฿'+n.toLocaleString();
+const fn = n=>n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(0)+'k':n.toLocaleString();
+const rc = v=>{const n=parseFloat(v);if(isNaN(n)||n===0)return'';if(n>=10)return'background:#1a1a2e;color:#fff;border-radius:5px;padding:1px 7px';if(n>=7)return'background:#404040;color:#fff;border-radius:5px;padding:1px 7px';if(n>=4)return'background:#e8e8e8;color:#555;border-radius:5px;padding:1px 7px';return'';};
+const co = {responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{font:{size:9},callback:v=>'฿'+(v/1000).toFixed(0)+'k'},grid:{color:'rgba(0,0,0,.04)'}}}};
+
+async function gviz(gid){
+  const url=`https://docs.google.com/spreadsheets/d/${CAMP_SHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
+  const res=await fetch(url);
+  const txt=await res.text();
+  return JSON.parse(txt.replace(/^[^{]+/,'').replace(/\);?\s*$/,''));
+}
+
+function gvizGet(row,i){const v=row.c||[];const c=v[i];if(!c||c.v===null||c.v===undefined)return'';return c.f!==undefined&&c.f!==null&&c.f!==''?String(c.f):String(c.v);}
+function gvizNum(row,i){return parseFloat(gvizGet(row,i))||0;}
+
+async function campLoadData(){
+  if(campLoaded) return;
+  try{
+    const [cd,ad]=await Promise.all([gviz(CAMP_GID),gviz(ATTR_GID)]);
+    // Parse Campaign Data
+    CAMP_DATA=cd.table.rows.map(row=>({
+      month:gvizNum(row,0),year:gvizNum(row,1),
+      campaign:gvizGet(row,2),channel:gvizGet(row,3),objective:gvizGet(row,4),
+      spend:gvizNum(row,5),imp:gvizNum(row,6),clicks:gvizNum(row,7),
+      booking:gvizNum(row,8),revenue:gvizNum(row,9),
+      br_spend:gvizNum(row,10),cv_spend:gvizNum(row,11),roas:gvizNum(row,12)
+    })).filter(r=>r.month&&r.year&&r.campaign);
+    // Parse Attribution Data
+    ATTR_DATA=ad.table.rows.map(row=>({
+      book_month:gvizNum(row,0),book_year:gvizNum(row,1),country:gvizGet(row,2),
+      bookings:gvizNum(row,3),abv:gvizNum(row,4),revenue:gvizNum(row,5),
+      avg_nights:gvizNum(row,6),blt:gvizNum(row,7),
+      ci_month:gvizNum(row,8),ci_year:gvizNum(row,9),room_nights:gvizNum(row,10)
+    })).filter(r=>r.book_month&&r.book_year&&r.country);
+    campLoaded=true;
+    campUpdateRange();
+    campRenderGeo();
+    campRenderHeatmaps();
+  }catch(e){
+    console.error('Camp load error:',e);
+    document.getElementById('monthly-tbody').innerHTML=`<tr><td colspan="11" style="color:#e55;text-align:center;padding:20px">Failed to load — make sure Sheet is public</td></tr>`;
+  }
+}
+
+function campGetRange(){
+  const s=Math.min(+document.getElementById('sm').value,+document.getElementById('em').value);
+  const e=Math.max(+document.getElementById('sm').value,+document.getElementById('em').value);
+  return{s,e};
+}
+
+function campGetD(){
+  const{s,e}=campGetRange();
+  return MONTHS.slice(s,e+1).map((l,idx)=>{
+    const i=s+idx;
+    const[mo,yr]=MONTH_KEYS[i].split('-').map(Number);
+    const rows=CAMP_DATA.filter(r=>r.month===mo&&r.year===yr);
+    const tS=rows.reduce((a,r)=>a+r.spend,0);
+    const tI=rows.reduce((a,r)=>a+r.imp,0);
+    const tCl=rows.reduce((a,r)=>a+r.clicks,0);
+    const tB=rows.reduce((a,r)=>a+r.booking,0);
+    const tR=rows.reduce((a,r)=>a+r.revenue,0);
+    const tBr=rows.reduce((a,r)=>a+r.br_spend,0);
+    const tCv=rows.reduce((a,r)=>a+r.cv_spend,0);
+    return{l,s:tS,i:tI,cl:tCl,b:tB,r:tR,br:tBr,cv:tCv,
+      cpm:tI>0?(tS/(tI/1000)):0,cpc:tCl>0?(tS/tCl):0,
+      ctr:tI>0?((tCl/tI)*100).toFixed(2)+'%':'—',
+      cpa:tB>0?Math.round(tS/tB):0,
+      roas:tS>0?(tR/tS).toFixed(2):0};
+  }).filter(d=>d.s>0||d.i>0||d.b>0);
+}
+
+function campSetAll(){document.getElementById('sm').value=0;document.getElementById('em').value=6;campUpdateRange();}
+
+function campUpdateRange(){
+  if(!campLoaded) return;
+  const d=campGetD();
+  const{s,e}=campGetRange();
+  document.getElementById('period-label').textContent=MONTHS[s]+' → '+MONTHS[e];
+  const tS=d.reduce((a,x)=>a+x.s,0),tI=d.reduce((a,x)=>a+x.i,0);
+  const tCl=d.reduce((a,x)=>a+x.cl,0),tB=d.reduce((a,x)=>a+x.b,0),tR=d.reduce((a,x)=>a+x.r,0);
+  const avgCpm=tI>0?(tS/(tI/1000)).toFixed(2):0;
+  const avgCpc=tCl>0?(tS/tCl).toFixed(2):0;
+  const avgCtr=tI>0?((tCl/tI)*100).toFixed(2)+'%':'—';
+  const roas=tS>0?(tR/tS).toFixed(2):0;
+  document.getElementById('k-spend').textContent=f(tS);
+  document.getElementById('k-imp').textContent=fn(tI);
+  document.getElementById('k-cpm').textContent='฿'+avgCpm;
+  document.getElementById('k-clicks').textContent=fn(tCl);
+  document.getElementById('k-cpc').textContent='฿'+avgCpc;
+  document.getElementById('k-ctr').textContent=avgCtr;
+  document.getElementById('k-booking').textContent=tB;
+  document.getElementById('k-rev').textContent=f(tR);
+  document.getElementById('k-roas').textContent=roas+'x';
+
+  // Monthly table
+  let rows='';
+  d.forEach(x=>{rows+=`<tr><td class="l">${x.l}</td><td>${f(x.s)}</td><td>${fn(x.i)}</td><td>฿${x.cpm.toFixed(2)}</td><td>${fn(x.cl)}</td><td>฿${x.cpc.toFixed(2)}</td><td>${x.ctr}</td><td>${x.b}</td><td>${x.cpa>0?f(x.cpa):'—'}</td><td>${f(x.r)}</td><td><span style="${rc(x.roas)}">${x.roas}x</span></td></tr>`;});
+  const totCpa=tB>0?Math.round(tS/tB):0;
+  rows+=`<tr class="tot"><td class="l">Total</td><td>${f(tS)}</td><td>${fn(tI)}</td><td>฿${avgCpm}</td><td>${fn(tCl)}</td><td>฿${avgCpc}</td><td>${avgCtr}</td><td>${tB}</td><td>${totCpa>0?f(totCpa):'—'}</td><td>${f(tR)}</td><td style="color:#1a1a2e;font-weight:800">${roas}x</td></tr>`;
+  document.getElementById('monthly-tbody').innerHTML=rows;
+
+  campRenderObjSummary();
+  if(chartsInited){campDrawTrend(d);campDrawBooking(d);campRenderBreakdown();}
+}
+
+function campRenderObjSummary(){
+  const{s,e}=campGetRange();
+  const rows=CAMP_DATA.filter(r=>{const i=MONTH_KEYS.indexOf(`${r.month}-${r.year}`);return i>=s&&i<=e;});
+  const br=rows.filter(r=>r.objective==='Branding');
+  const cv=rows.filter(r=>r.objective==='Conversion');
+  const brS=br.reduce((a,r)=>a+r.spend,0),brI=br.reduce((a,r)=>a+r.imp,0),brCl=br.reduce((a,r)=>a+r.clicks,0);
+  const cvS=cv.reduce((a,r)=>a+r.spend,0),cvB=cv.reduce((a,r)=>a+r.booking,0),cvR=cv.reduce((a,r)=>a+r.revenue,0);
+  document.getElementById('obj-summary').innerHTML=`
+    <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#E4C97A;display:inline-block"></span>Branding / Traffic</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px">
+      <div class="mini-s"><div class="klabel">Spend</div><div class="kval" style="font-size:13px">${f(brS)}</div></div>
+      <div class="mini-s"><div class="klabel">Imp.</div><div class="kval" style="font-size:13px">${fn(brI)}</div></div>
+      <div class="mini-s"><div class="klabel">Clicks</div><div class="kval" style="font-size:13px">${fn(brCl)}</div></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:#555;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#A67C00;display:inline-block"></span>Conversion</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+      <div class="mini-s"><div class="klabel">Spend</div><div class="kval" style="font-size:13px">${f(cvS)}</div></div>
+      <div class="mini-s"><div class="klabel">ROAS</div><div class="kval" style="font-size:13px">${cvS>0?(cvR/cvS).toFixed(2)+'x':'—'}</div></div>
+      <div class="mini-s"><div class="klabel">Booking</div><div class="kval" style="font-size:13px">${cvB}</div></div>
+      <div class="mini-s"><div class="klabel">Revenue</div><div class="kval" style="font-size:13px">${f(cvR)}</div></div>
+    </div>`;
+}
+
+function campDrawTrend(d){
+  if(tC)tC.destroy();
+  tC=new Chart(document.getElementById('trendChart'),{type:'bar',data:{labels:d.map(x=>x.l.split(' ')[0]),datasets:[
+    {type:'bar',label:'Branding',data:d.map(x=>x.br),backgroundColor:'#E4C97A',borderRadius:0,stack:'s',yAxisID:'y',barPercentage:0.5,categoryPercentage:0.65},
+    {type:'bar',label:'Conversion',data:d.map(x=>x.cv),backgroundColor:'#A67C00',borderRadius:[3,3,0,0],stack:'s',yAxisID:'y',barPercentage:0.5,categoryPercentage:0.65},
+    {type:'line',label:'Revenue',data:d.map(x=>x.r),borderColor:'#1B4332',backgroundColor:'rgba(27,67,50,.05)',pointBackgroundColor:'#fff',pointBorderColor:'#1B4332',pointBorderWidth:2,pointRadius:3,borderWidth:2,tension:0.4,yAxisID:'y2',fill:true}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+    x:{stacked:true,ticks:{font:{size:9}},grid:{display:false}},
+    y:{stacked:true,ticks:{font:{size:9},callback:v=>'฿'+(v/1000).toFixed(0)+'k'},grid:{color:'rgba(0,0,0,.04)'}},
+    y2:{position:'right',min:0,ticks:{font:{size:9},callback:v=>v===0?'':'฿'+(v/1000).toFixed(0)+'k'},grid:{display:false}}
+  }}});
+}
+
+function campDrawBooking(d){
+  if(bC)bC.destroy();
+  bC=new Chart(document.getElementById('bookChart'),{type:'bar',data:{labels:d.map(x=>x.l.split(' ')[0]),datasets:[
+    {type:'bar',label:'Spend',data:d.map(x=>x.s),backgroundColor:'#C4982A',borderRadius:4,yAxisID:'y',barPercentage:0.5,categoryPercentage:0.65},
+    {type:'line',label:'Booking',data:d.map(x=>x.b),borderColor:'#1a1a2e',backgroundColor:'rgba(26,26,46,.05)',pointBackgroundColor:'#fff',pointBorderColor:'#1a1a2e',pointBorderWidth:2,pointRadius:3,borderWidth:2,tension:0.4,yAxisID:'y2',fill:true}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+    x:{ticks:{font:{size:9}},grid:{display:false}},
+    y:{ticks:{font:{size:9},callback:v=>'฿'+(v/1000).toFixed(0)+'k'},grid:{color:'rgba(0,0,0,.04)'}},
+    y2:{position:'right',min:0,ticks:{font:{size:9},callback:v=>v===0?'':v+' bk'},grid:{display:false}}
+  }}});
+}
+
+function campRenderBreakdown(){
+  const{s,e}=campGetRange();
+  const rows=CAMP_DATA.filter(r=>{const i=MONTH_KEYS.indexOf(`${r.month}-${r.year}`);return i>=s&&i<=e;});
+  const camps=[...new Set(rows.map(r=>r.campaign))];
+  const chans=[...new Set(rows.map(r=>r.channel))];
+
+  // Campaign table
+  let html='';
+  camps.forEach(c=>{
+    const cr=rows.filter(r=>r.campaign===c);
+    const cS=cr.reduce((a,r)=>a+r.spend,0),cI=cr.reduce((a,r)=>a+r.imp,0),cCl=cr.reduce((a,r)=>a+r.clicks,0),cB=cr.reduce((a,r)=>a+r.booking,0),cR=cr.reduce((a,r)=>a+r.revenue,0);
+    const cpm=cI>0?(cS/(cI/1000)).toFixed(2):0,cpc=cCl>0?(cS/cCl).toFixed(2):0,ctr=cI>0?((cCl/cI)*100).toFixed(2)+'%':'—',cpa=cB>0?Math.round(cS/cB):0,cvr=cCl>0?((cB/cCl)*100).toFixed(2)+'%':'—',roas=cS>0?(cR/cS).toFixed(2):0;
+    const rb=roas>=8?'roas-hi':roas>=4?'roas-md':'roas-lo';
+    html+=`<tr><td class="l">${c}</td><td>${f(cS)}</td><td>${fn(cI)}</td><td>฿${cpm}</td><td>${fn(cCl)}</td><td>฿${cpc}</td><td>${ctr}</td><td>${cB||'—'}</td><td>${cpa>0?f(cpa):'—'}</td><td>${cvr}</td><td>${cR>0?f(cR):'—'}</td><td><span class="${rb}">${roas}x</span></td></tr>`;
+  });
+  const tS=rows.reduce((a,r)=>a+r.spend,0),tI=rows.reduce((a,r)=>a+r.imp,0),tCl=rows.reduce((a,r)=>a+r.clicks,0),tB=rows.reduce((a,r)=>a+r.booking,0),tR=rows.reduce((a,r)=>a+r.revenue,0);
+  const troas=tS>0?(tR/tS).toFixed(2):0;const trb=troas>=8?'roas-hi':troas>=4?'roas-md':'roas-lo';
+  html+=`<tr class="tot"><td class="l">Total</td><td>${f(tS)}</td><td>${fn(tI)}</td><td>฿${tI>0?(tS/(tI/1000)).toFixed(2):0}</td><td>${fn(tCl)}</td><td>฿${tCl>0?(tS/tCl).toFixed(2):0}</td><td>${tI>0?((tCl/tI)*100).toFixed(2)+'%':'—'}</td><td>${tB||'—'}</td><td>${tB>0?f(Math.round(tS/tB)):'—'}</td><td>${tCl>0?((tB/tCl)*100).toFixed(2)+'%':'—'}</td><td>${tR>0?f(tR):'—'}</td><td><span class="${trb}">${troas}x</span></td></tr>`;
+  document.getElementById('camp-tbody').innerHTML=html;
+
+  // Charts
+  if(c1C)c1C.destroy();
+  c1C=new Chart(document.getElementById('c1'),{type:'bar',data:{labels:camps,datasets:[{label:'Spend',data:camps.map(c=>rows.filter(r=>r.campaign===c).reduce((a,r)=>a+r.spend,0)),backgroundColor:'rgba(196,152,42,.9)',borderRadius:6,barPercentage:0.5,categoryPercentage:0.65},{label:'Revenue',data:camps.map(c=>rows.filter(r=>r.campaign===c).reduce((a,r)=>a+r.revenue,0)),backgroundColor:'rgba(26,26,46,.85)',borderRadius:6,barPercentage:0.5,categoryPercentage:0.65}]},options:{...co,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+f(ctx.raw)}}}}});
+  if(c2C)c2C.destroy();
+  c2C=new Chart(document.getElementById('c2'),{type:'bar',data:{labels:chans,datasets:[{label:'Spend',data:chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.spend,0)),backgroundColor:'rgba(196,152,42,.9)',borderRadius:6,yAxisID:'y',barPercentage:0.5,categoryPercentage:0.65},{label:'Clicks',data:chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.clicks,0)),backgroundColor:'rgba(26,26,46,.85)',borderRadius:6,yAxisID:'y2',barPercentage:0.5,categoryPercentage:0.65}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{font:{size:9},callback:v=>'฿'+(v/1000).toFixed(0)+'k'},grid:{color:'rgba(0,0,0,.04)'}},y2:{position:'right',ticks:{font:{size:9}},grid:{display:false}}}}});
+  if(c3C)c3C.destroy();
+  c3C=new Chart(document.getElementById('c3'),{type:'bar',data:{labels:chans,datasets:[{label:'Spend',data:chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.spend,0)),backgroundColor:'rgba(196,152,42,.9)',borderRadius:6,barPercentage:0.5,categoryPercentage:0.65},{label:'Revenue',data:chans.map(c=>rows.filter(r=>r.channel===c).reduce((a,r)=>a+r.revenue,0)),backgroundColor:'rgba(26,26,46,.85)',borderRadius:6,barPercentage:0.5,categoryPercentage:0.65}]},options:{...co,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+f(ctx.raw)}}}}});
+
+  campRenderChan(rows,chans);
+}
+
+function campRenderChan(rows,chans){
+  if(!rows){
+    const{s,e}=campGetRange();
+    rows=CAMP_DATA.filter(r=>{const i=MONTH_KEYS.indexOf(`${r.month}-${r.year}`);return i>=s&&i<=e;});
+    chans=[...new Set(rows.map(r=>r.channel))];
+  }
+  const{s,e}=campGetRange();
+  const lbl=document.getElementById('chan-label');
+  lbl.textContent=s===e?'— '+MONTHS[s]:'— all months';
+  let html=`<table class="tbl" style="min-width:900px"><thead><tr><th class="l">Month</th><th class="l">Channel</th><th>Spend</th><th>Imp.</th><th>CPM</th><th>Clicks</th><th>CPC</th><th>CTR</th><th>Booking</th><th>CPA</th><th>Revenue</th><th>ROAS</th></tr></thead><tbody>`;
+  for(let i=s;i<=e;i++){
+    const[mo,yr]=MONTH_KEYS[i].split('-').map(Number);
+    const mrows=CAMP_DATA.filter(r=>r.month===mo&&r.year===yr);
+    if(!mrows.length)continue;
+    const mchans=[...new Set(mrows.map(r=>r.channel))];
+    mchans.forEach((ch,ci)=>{
+      const cr=mrows.filter(r=>r.channel===ch);
+      const cS=cr.reduce((a,r)=>a+r.spend,0),cI=cr.reduce((a,r)=>a+r.imp,0),cCl=cr.reduce((a,r)=>a+r.clicks,0),cB=cr.reduce((a,r)=>a+r.booking,0),cR=cr.reduce((a,r)=>a+r.revenue,0);
+      html+=`<tr><td class="l" style="font-weight:${ci===0?700:400};color:${ci===0?'#1a1a2e':'transparent'}">${ci===0?MONTHS[i]:''}</td><td class="l">${ch}</td><td>${f(cS)}</td><td>${fn(cI)}</td><td>฿${cI>0?(cS/(cI/1000)).toFixed(2):0}</td><td>${fn(cCl)}</td><td>฿${cCl>0?(cS/cCl).toFixed(2):0}</td><td>${cI>0?((cCl/cI)*100).toFixed(2)+'%':'—'}</td><td>${cB||'—'}</td><td>${cB>0?f(Math.round(cS/cB)):'—'}</td><td>${cR>0?f(cR):'—'}</td><td>${cS>0?(cR/cS).toFixed(2)+'x':'—'}</td></tr>`;
+    });
+    const tS=mrows.reduce((a,r)=>a+r.spend,0),tI=mrows.reduce((a,r)=>a+r.imp,0),tCl=mrows.reduce((a,r)=>a+r.clicks,0),tB=mrows.reduce((a,r)=>a+r.booking,0),tR=mrows.reduce((a,r)=>a+r.revenue,0);
+    html+=`<tr class="tot"><td class="l">${MONTHS[i]}</td><td class="l">Total</td><td>${f(tS)}</td><td>${fn(tI)}</td><td>฿${tI>0?(tS/(tI/1000)).toFixed(2):0}</td><td>${fn(tCl)}</td><td>฿${tCl>0?(tS/tCl).toFixed(2):0}</td><td>${tI>0?((tCl/tI)*100).toFixed(2)+'%':'—'}</td><td>${tB||'—'}</td><td>${tB>0?f(Math.round(tS/tB)):'—'}</td><td>${tR>0?f(tR):'—'}</td><td>${tS>0?(tR/tS).toFixed(2)+'x':'—'}</td></tr>`;
+  }
+  document.getElementById('chan-wrap').innerHTML=html+'</tbody></table>';
+}
+
+function campRenderGeo(){
+  if(!ATTR_DATA.length)return;
+  const countries=[...new Set(ATTR_DATA.map(r=>r.country))];
+  const agg=countries.map(c=>{
+    const cr=ATTR_DATA.filter(r=>r.country===c);
+    const b=cr.reduce((a,r)=>a+r.bookings,0),rev=cr.reduce((a,r)=>a+r.revenue,0);
+    const nights=b>0?cr.reduce((a,r)=>a+r.avg_nights*r.bookings,0)/b:0;
+    const blt=b>0?cr.reduce((a,r)=>a+r.blt*r.bookings,0)/b:0;
+    return{c,b,abv:b>0?Math.round(rev/b):0,rev,nights:nights.toFixed(1),blt:blt.toFixed(0)};
+  }).sort((a,b)=>b.rev-a.rev);
+
+  const tier1=['Australia','United Kingdom','United States','France','Germany','Israel','Thailand'];
+  const t1=agg.filter(r=>tier1.includes(r.c));
+  const t2=agg.filter(r=>!tier1.includes(r.c));
+  const tB=agg.reduce((a,r)=>a+r.b,0),tR=agg.reduce((a,r)=>a+r.rev,0);
+
+  const geoRow=r=>`<tr><td class="l">${r.c}</td><td>—</td><td>—</td><td>—</td><td>${r.b}</td><td>${f(r.rev)}</td></tr>`;
+  const geoTot=(rows)=>{const b=rows.reduce((a,r)=>a+r.b,0),rev=rows.reduce((a,r)=>a+r.rev,0);return`<tr class="tot"><td class="l">Grand total</td><td>—</td><td>—</td><td>—</td><td>${b}</td><td>${f(rev)}</td></tr>`;};
+
+  document.getElementById('geo-t1-tbody').innerHTML=t1.map(geoRow).join('')+geoTot(t1);
+  document.getElementById('geo-t2-tbody').innerHTML=t2.map(geoRow).join('')+geoTot(t2);
+
+  // Market sources
+  const attrRows=agg.map(r=>`<tr><td class="l">${r.c}</td><td>${r.b}</td><td>${f(r.abv)}</td><td>${f(r.rev)}</td><td>${r.nights}</td><td>${r.blt}</td></tr>`).join('');
+  document.getElementById('attr-tbody').innerHTML=attrRows+`<tr class="tot"><td class="l">Grand total</td><td>${tB}</td><td>${f(tB>0?Math.round(tR/tB):0)}</td><td>${f(tR)}</td><td>—</td><td>—</td></tr>`;
+
+  // Donut
+  const top=agg.slice(0,6);
+  const othRev=agg.slice(6).reduce((a,r)=>a+r.rev,0);
+  const labels=[...top.map(r=>r.c),'Others'];
+  const vals=[...top.map(r=>r.rev),othRev];
+  if(geoC)geoC.destroy();
+  geoC=new Chart(document.getElementById('geoDonut'),{type:'doughnut',data:{labels,datasets:[{data:vals,backgroundColor:DONUT_COLORS,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+f(ctx.raw)}}}}});
+  document.getElementById('geo-donut-legend').innerHTML=labels.map((l,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${DONUT_COLORS[i]}"></span>${l}<span class="dl-val">${f(vals[i])}</span></div>`).join('');
+
+  // BLT bars
+  const maxBlt=Math.max(...agg.map(r=>+r.blt));
+  const bltTop=agg.filter(r=>+r.blt>0).sort((a,b)=>+b.blt-+a.blt).slice(0,6);
+  document.getElementById('blt-bars').innerHTML=bltTop.map(r=>`<div style="font-size:11px;display:flex;align-items:center;gap:8px;color:#555;margin-bottom:6px"><span style="min-width:80px">${r.c}</span><div style="flex:1;background:#f0f0f0;border-radius:3px;height:5px;overflow:hidden"><div style="width:${Math.round(+r.blt/maxBlt*100)}%;height:100%;background:#1a1a2e;border-radius:3px"></div></div><span style="font-weight:700;color:#1a1a2e;min-width:28px;text-align:right">${r.blt}d</span></div>`).join('');
+}
+
+function campRenderHeatmaps(){
+  if(!ATTR_DATA.length)return;
+  // Build unique checkin months from data
+  const ciKeys=[...new Set(ATTR_DATA.map(r=>`${r.ci_month}-${r.ci_year}`))].sort((a,b)=>{const[am,ay]=a.split('-').map(Number);const[bm,by]=b.split('-').map(Number);return ay!==by?ay-by:am-bm;});
+  const ciLabels=ciKeys.map(k=>{const[m,y]=k.split('-').map(Number);const mon=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return mon[m]+' '+(y+'').slice(2);});
+  const countries=[...new Set(ATTR_DATA.map(r=>r.country))].sort();
+
+  // Build headers
+  const headHtml='<th>Country</th>'+ciLabels.map(l=>`<th>${l}</th>`).join('');
+  document.getElementById('rev-heat-head').innerHTML=headHtml;
+  document.getElementById('rn-heat-head').innerHTML=headHtml;
+
+  const maxRev=Math.max(...ATTR_DATA.map(r=>r.revenue),1);
+  const maxRN=Math.max(...ATTR_DATA.map(r=>r.room_nights),1);
+
+  function heatCell(val,maxVal,isRev){
+    if(!val)return'<td>—</td>';
+    const pct=val/maxVal;
+    const cls=pct>=0.55?'heat-hi':pct>=0.25?'heat-md':'heat-lo';
+    const display=isRev?Math.round(val/1000)+'k':val;
+    return`<td class="${cls}"><span>${display}</span></td>`;
+  }
+
+  document.getElementById('rev-heatmap-tbody').innerHTML=countries.map(c=>{
+    const cells=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);const val=ATTR_DATA.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.revenue,0);return heatCell(val,maxRev,true);}).join('');
+    return`<tr><td>${c}</td>${cells}</tr>`;
+  }).join('');
+
+  document.getElementById('rn-heatmap-tbody').innerHTML=countries.map(c=>{
+    const cells=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);const val=ATTR_DATA.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.room_nights,0);return heatCell(val,maxRN,false);}).join('');
+    return`<tr><td>${c}</td>${cells}</tr>`;
+  }).join('');
+}
+
+function campSwitchTab(tab,el){
+  document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.cview').forEach(v=>v.classList.remove('active'));
+  document.getElementById('cv-'+tab).classList.add('active');
+  if(tab==='breakdown'&&chartsInited)campRenderBreakdown();
+}
+
+function campInitCharts(){
+  if(chartsInited)return;
+  chartsInited=true;
+  const d=campGetD();
+  campDrawTrend(d);
+  campDrawBooking(d);
+}
+
+function switchMain(tab,btn){
+  document.querySelectorAll('.mnav').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.dsection').forEach(s=>s.classList.remove('active'));
+  document.getElementById('dsec-'+tab).classList.add('active');
+  if(tab==='creative'&&DATA.length===0) loadData();
+  if(tab==='campaign'){
+    if(!campLoaded) campLoadData().then(()=>setTimeout(campInitCharts,100));
+    else setTimeout(campInitCharts,100);
+  }
+}
+
+// Load creative on start
+loadData();
+</script>
+</body>
+</html>

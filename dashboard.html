@@ -110,9 +110,9 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
 .heat-md span{display:inline-block;padding:2px 9px;border-radius:6px;background:#2D6A4F;color:#fff;font-weight:600;font-size:11px}
 .heat-lo span{display:inline-block;padding:2px 9px;border-radius:6px;background:#8FC4A8;color:#fff;font-weight:500;font-size:11px}
 .cross{width:100%;border-collapse:collapse;font-size:12px}
-.cross th{background:#1a1a2e;color:#fff;padding:9px 12px;text-align:right;white-space:nowrap;font-size:11px;font-weight:700}
-.cross th:first-child{text-align:left}
-.cross td{padding:8px 12px;border-bottom:1px solid #f5f5f5;text-align:right;color:#1a1a2e}
+.cross th{background:#1a1a2e;color:#fff;padding:9px 12px;text-align:center;white-space:nowrap;font-size:11px;font-weight:700}
+.cross th:first-child{text-align:left}.cross th:last-child{border-left:2px solid rgba(255,255,255,.2)}
+.cross td{padding:8px 12px;border-bottom:1px solid #f5f5f5;text-align:center;color:#1a1a2e}
 .cross td:first-child{text-align:left;color:#555;font-weight:600}
 .cross .tot td{font-weight:800;background:#f9fafb;border-top:2px solid #f0f0f0;color:#1a1a2e}
 .lbar{display:flex;gap:14px;margin-bottom:10px;font-size:12px;color:#aaa}
@@ -295,7 +295,7 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
         <div style="overflow-x:auto"><table class="tbl"><thead><tr><th class="l">Country</th><th>Booking</th><th>Revenue</th></tr></thead><tbody id="geo-tother-tbody"><tr><td class="l" colspan="3" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody></table></div>
       </div>
 
-      <div class="slbl" style="margin-bottom:14px">Attribution — XPO by Knorex</div>
+      <div class="slbl" style="margin-bottom:14px">Attribution</div>
       <div class="ccard" style="margin-bottom:18px">
         <div class="ctitle">Market sources</div>
         <div style="overflow-x:auto"><table class="tbl">
@@ -720,11 +720,12 @@ function campRenderObjSummary(){
 
 function campDrawTrend(d){
   if(tC)tC.destroy();
+  const trendTotalSpend=d.reduce((a,x)=>a+x.s,0);
   tC=new Chart(document.getElementById('trendChart'),{type:'bar',data:{labels:d.map(x=>x.l.split(' ')[0]),datasets:[
     {type:'bar',label:'Branding',data:d.map(x=>x.br),backgroundColor:'#E4C97A',stack:'s',yAxisID:'y',barPercentage:0.5,categoryPercentage:0.65},
     {type:'bar',label:'Conversion',data:d.map(x=>x.cv),backgroundColor:'#A67C00',borderRadius:[3,3,0,0],stack:'s',yAxisID:'y',barPercentage:0.5,categoryPercentage:0.65},
     {type:'line',label:'Revenue',data:d.map(x=>x.r),borderColor:'#1B4332',backgroundColor:'rgba(27,67,50,.05)',pointBackgroundColor:'#fff',pointBorderColor:'#1B4332',pointBorderWidth:2,pointRadius:3,borderWidth:2,tension:0.4,yAxisID:'y2',fill:true}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{if(ctx.dataset.label==='Revenue')return` Revenue: ${f(ctx.raw)}`;const pct=trendTotalSpend>0?((ctx.raw/trendTotalSpend)*100).toFixed(1):0;return` ${ctx.dataset.label}: ${f(ctx.raw)} (${pct}%)`;}}}},scales:{
     x:{stacked:true,ticks:{font:{size:9}},grid:{display:false}},
     y:{stacked:true,ticks:{font:{size:9},callback:fax},grid:{color:'rgba(0,0,0,.04)'}},
     y2:{position:'right',min:0,ticks:{font:{size:9},callback:fax},grid:{display:false}}
@@ -827,8 +828,18 @@ function campRenderHeatmaps(){
   const maxRev=Math.max(...attrRows.map(r=>r.revenue),1);
   const maxRN=Math.max(...attrRows.map(r=>r.room_nights),1);
 
-  function hCell(val,mx,isRev){if(!val)return'<td>—</td>';const p=val/mx;const cls=p>=0.55?'heat-hi':p>=0.25?'heat-md':'heat-lo';const d=isRev?Math.round(val/1000)+'k':val;return`<td class="${cls}"><span>${d}</span></td>`;}
-  function plainCell(val,isRev){if(!val)return'<td style="color:#bbb;text-align:center">—</td>';const d=isRev?Math.round(val/1000)+'k':val;return`<td style="text-align:center;font-weight:700;color:#1a1a2e">${d}</td>`;}
+  function hCell(val,mx,isRev){
+    if(!val||val===0)return'<td style="color:#bbb;text-align:center">—</td>';
+    const p=val/mx;
+    const cls=p>=0.55?'heat-hi':p>=0.25?'heat-md':'heat-lo';
+    const d=isRev?Math.round(val/1000)+'k':Math.round(val);
+    return`<td class="${cls}" style="text-align:center"><span>${d}</span></td>`;
+  }
+  function plainCell(val,isRev){
+    if(!val||val===0)return'<td style="color:#bbb;text-align:center">—</td>';
+    const d=isRev?Math.round(val/1000)+'k':Math.round(val);
+    return`<td style="text-align:center;font-weight:700;color:#1a1a2e;border-left:2px solid #eee">${d}</td>`;
+  }
 
   // Revenue heatmap
   let revRows='';

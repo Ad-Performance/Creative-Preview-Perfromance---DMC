@@ -281,26 +281,36 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
       <div class="slbl">Geo performance</div>
       <div class="g2">
         <div class="ccard">
-          <div class="ctitle">Tier 1 — primary markets</div>
+          <div class="ctitle">Tier 1</div>
           <div style="overflow-x:auto"><table class="tbl">
             <thead><tr><th class="l">Country</th><th>Spend</th><th>Imp.</th><th>Clicks</th><th>Booking</th><th>Revenue</th></tr></thead>
             <tbody id="geo-t1-tbody"><tr><td class="l" colspan="6" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
           </table></div>
         </div>
         <div class="ccard">
-          <div class="ctitle">Others geo</div>
+          <div class="ctitle">Tier 2</div>
           <div style="overflow-x:auto"><table class="tbl">
             <thead><tr><th class="l">Country</th><th>Spend</th><th>Imp.</th><th>Clicks</th><th>Booking</th><th>Revenue</th></tr></thead>
             <tbody id="geo-t2-tbody"><tr><td class="l" colspan="6" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
           </table></div>
         </div>
       </div>
+      <div class="g2" style="margin-top:14px">
+        <div class="ccard">
+          <div class="ctitle">Other</div>
+          <div style="overflow-x:auto"><table class="tbl">
+            <thead><tr><th class="l">Country</th><th>Spend</th><th>Imp.</th><th>Clicks</th><th>Booking</th><th>Revenue</th></tr></thead>
+            <tbody id="geo-tother-tbody"><tr><td class="l" colspan="6" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
+          </table></div>
+        </div>
+        <div></div>
+      </div>
       <div class="slbl" style="margin-top:6px">Attribution — XPO by Knorex</div>
       <div class="g75">
         <div class="ccard">
           <div class="ctitle">Market sources</div>
           <div style="overflow-x:auto"><table class="tbl">
-            <thead><tr><th class="l">Country</th><th>Bookings</th><th>ABV</th><th>Revenue</th><th>Nights</th><th>BLT (days)</th></tr></thead>
+            <thead><tr><th class="l">Country</th><th>Bookings</th><th>ABV</th><th>Revenue</th><th>Avg Nights</th><th>BLT (days)</th></tr></thead>
             <tbody id="attr-tbody"><tr><td class="l" colspan="6" style="color:#bbb;text-align:center;padding:20px">Loading...</td></tr></tbody>
           </table></div>
         </div>
@@ -492,12 +502,13 @@ async function campLoadData(){
       };
     }).filter(r=>r.month&&r.year&&r.campaign);
     // Parse Attribution Data
-    // Columns: A=Booking Month, B=Booking Year, C=Country, D=Bookings, E=ABV, F=Revenue, G=Nights, H=BLT, I=Checkin Month, J=Checkin Year
+    // Columns: A=Booking Month, B=Booking Year, C=Country, D=Bookings, E=ABV, F=Revenue, G=Nights, H=BLT, I=Checkin Month, J=Checkin Year, K=Tier (1 or 2)
     ATTR_DATA=ad.table.rows.map(row=>({
       book_month:gvizNum(row,0),book_year:gvizNum(row,1),country:gvizGet(row,2),
       bookings:gvizNum(row,3),abv:gvizNum(row,4),revenue:gvizNum(row,5),
       avg_nights:gvizNum(row,6),blt:gvizNum(row,7),
       ci_month:gvizNum(row,8),ci_year:gvizNum(row,9),
+      tier:gvizGet(row,10)||'2',
       get room_nights(){ return this.bookings * this.avg_nights; }
     })).filter(r=>r.book_month&&r.book_year&&r.country&&r.revenue>0);
     campLoaded=true;
@@ -693,21 +704,26 @@ function campRenderGeo(){
   const agg=countries.map(c=>{
     const cr=ATTR_DATA.filter(r=>r.country===c);
     const b=cr.reduce((a,r)=>a+r.bookings,0),rev=cr.reduce((a,r)=>a+r.revenue,0);
-    const nights=b>0?cr.reduce((a,r)=>a+r.avg_nights*r.bookings,0)/b:0;
+    const nights=b>0?(cr.reduce((a,r)=>a+r.avg_nights*r.bookings,0)/b):0;
     const blt=b>0?cr.reduce((a,r)=>a+r.blt*r.bookings,0)/b:0;
     return{c,b,abv:b>0?Math.round(rev/b):0,rev,nights:nights.toFixed(1),blt:blt.toFixed(0)};
   }).sort((a,b)=>b.rev-a.rev);
 
-  const tier1=['Australia','United Kingdom','United States','France','Germany','Israel','Thailand'];
-  const t1=agg.filter(r=>tier1.includes(r.c));
-  const t2=agg.filter(r=>!tier1.includes(r.c));
+  // Tier from Sheet — country is Tier 1 if ANY of its rows has tier=1
+  const tier1Countries=new Set(ATTR_DATA.filter(r=>String(r.tier).trim()==='1').map(r=>r.country));
+  const tier2Countries=new Set(ATTR_DATA.filter(r=>String(r.tier).trim()==='2').map(r=>r.country));
+  const t1=agg.filter(r=>tier1Countries.has(r.c));
+  const t2=agg.filter(r=>tier2Countries.has(r.c)&&!tier1Countries.has(r.c));
+  const tOther=agg.filter(r=>!tier1Countries.has(r.c)&&!tier2Countries.has(r.c));
   const tB=agg.reduce((a,r)=>a+r.b,0),tR=agg.reduce((a,r)=>a+r.rev,0);
 
   const geoRow=r=>`<tr><td class="l">${r.c}</td><td>—</td><td>—</td><td>—</td><td>${r.b}</td><td>${f(r.rev)}</td></tr>`;
   const geoTot=(rows)=>{const b=rows.reduce((a,r)=>a+r.b,0),rev=rows.reduce((a,r)=>a+r.rev,0);return`<tr class="tot"><td class="l">Grand total</td><td>—</td><td>—</td><td>—</td><td>${b}</td><td>${f(rev)}</td></tr>`;};
 
-  document.getElementById('geo-t1-tbody').innerHTML=t1.map(geoRow).join('')+geoTot(t1);
-  document.getElementById('geo-t2-tbody').innerHTML=t2.map(geoRow).join('')+geoTot(t2);
+  document.getElementById('geo-t1-tbody').innerHTML=t1.length?t1.map(geoRow).join('')+geoTot(t1):'<tr><td colspan="6" style="color:#bbb;text-align:center;padding:12px">No data</td></tr>';
+  document.getElementById('geo-t2-tbody').innerHTML=t2.length?t2.map(geoRow).join('')+geoTot(t2):'<tr><td colspan="6" style="color:#bbb;text-align:center;padding:12px">No data</td></tr>';
+  const tOtherEl=document.getElementById('geo-tother-tbody');
+  if(tOtherEl) tOtherEl.innerHTML=tOther.length?tOther.map(geoRow).join('')+geoTot(tOther):'<tr><td colspan="6" style="color:#bbb;text-align:center;padding:12px">No data</td></tr>';
 
   // Market sources
   const attrRows=agg.map(r=>`<tr><td class="l">${r.c}</td><td>${r.b}</td><td>${f(r.abv)}</td><td>${f(r.rev)}</td><td>${r.nights}</td><td>${r.blt}</td></tr>`).join('');

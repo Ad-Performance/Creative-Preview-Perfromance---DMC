@@ -838,12 +838,12 @@ function campRenderHeatmaps(){
     if(!val||val===0)return'<td style="color:#bbb;text-align:center">—</td>';
     const p=val/mx;
     const cls=p>=0.55?'heat-hi':p>=0.25?'heat-md':'heat-lo';
-    const d=isRev?Math.round(val/1000)+'k':Math.round(val);
+    const d=isRev?Math.round(val).toLocaleString('en-US'):Math.round(val);
     return`<td class="${cls}" style="text-align:center"><span>${d}</span></td>`;
   }
   function plainCell(val,isRev){
     if(!val||val===0)return'<td style="color:#bbb;text-align:center">—</td>';
-    const d=isRev?Math.round(val/1000)+'k':Math.round(val);
+    const d=isRev?Math.round(val).toLocaleString('en-US'):Math.round(val);
     return`<td style="text-align:center;font-weight:700;color:#1a1a2e;border-left:2px solid #eee">${d}</td>`;
   }
 

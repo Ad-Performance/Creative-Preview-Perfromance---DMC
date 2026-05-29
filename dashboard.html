@@ -206,12 +206,26 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
         <div class="kpi"><div class="klabel">ROAS</div><div class="kval" id="k-roas">—</div></div>
       </div>
 
+      <!-- 1. Spend by objective & Revenue -->
       <div class="ccard" style="margin-bottom:18px">
         <div class="ctitle">Spend by objective & Revenue</div>
         <div class="lbar"><span><span class="lsq" style="background:#E4C97A"></span>Branding</span><span><span class="lsq" style="background:#A67C00"></span>Conversion</span><span><span class="lline" style="border-color:#1B4332"></span>Revenue</span></div>
         <div style="position:relative;height:200px"><canvas id="trendChart">.</canvas></div>
       </div>
 
+      <!-- 2. Branding | Conversion -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+        <div class="ccard">
+          <div class="ctitle"><span style="width:10px;height:10px;border-radius:50%;background:#E4C97A;display:inline-block"></span>Branding / Traffic</div>
+          <div id="br-summary"><div style="color:#bbb;font-size:12px">Loading...</div></div>
+        </div>
+        <div class="ccard">
+          <div class="ctitle"><span style="width:10px;height:10px;border-radius:50%;background:#A67C00;display:inline-block"></span>Conversion</div>
+          <div id="cv-summary"><div style="color:#bbb;font-size:12px">Loading...</div></div>
+        </div>
+      </div>
+
+      <!-- 3. Spend by Geo & Revenue -->
       <div class="ccard" style="margin-bottom:18px">
         <div class="ctitle">Spend by Geo & Revenue <span class="csub">overall</span></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
@@ -232,17 +246,7 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
-        <div class="ccard">
-          <div class="ctitle"><span style="width:10px;height:10px;border-radius:50%;background:#E4C97A;display:inline-block"></span>Branding / Traffic</div>
-          <div id="br-summary"><div style="color:#bbb;font-size:12px">Loading...</div></div>
-        </div>
-        <div class="ccard">
-          <div class="ctitle"><span style="width:10px;height:10px;border-radius:50%;background:#A67C00;display:inline-block"></span>Conversion</div>
-          <div id="cv-summary"><div style="color:#bbb;font-size:12px">Loading...</div></div>
-        </div>
-      </div>
-
+      <!-- 4. Monthly performance -->
       <div class="ccard">
         <div class="ctitle">Monthly performance</div>
         <div style="overflow-x:auto"><table class="tbl" style="min-width:700px">
@@ -303,11 +307,17 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
         </div>
         <div class="ccard">
           <div class="ctitle">Top ABV market</div>
-          <div style="position:relative;height:190px;margin-top:8px"><canvas id="abvChart">.</canvas></div>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+            <div style="position:relative;width:130px;height:130px;flex-shrink:0"><canvas id="abvChart">.</canvas></div>
+            <div id="geo-abv-legend"></div>
+          </div>
         </div>
         <div class="ccard">
           <div class="ctitle">Top Booking market</div>
-          <div style="position:relative;height:190px;margin-top:8px"><canvas id="bookingChart">.</canvas></div>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+            <div style="position:relative;width:130px;height:130px;flex-shrink:0"><canvas id="bookingChart">.</canvas></div>
+            <div id="geo-bk-legend"></div>
+          </div>
         </div>
       </div>
 
@@ -623,6 +633,14 @@ function campGetRows(){
   });
 }
 
+function campGetAttrRows(){
+  const{s,e}=campGetRange();
+  return ATTR_DATA.filter(r=>{
+    const i=MONTH_KEYS.indexOf(`${r.book_month}-${r.book_year}`);
+    return i>=s&&i<=e;
+  });
+}
+
 function campGetD(){
   const{s,e}=campGetRange();
   return MONTHS.slice(s,e+1).map((l,idx)=>{
@@ -707,9 +725,10 @@ function campDrawTrend(d){
 }
 
 function campDrawGeo(){
-  if(!ATTR_DATA.length)return;
+  const attrRows=campGetAttrRows();
+  if(!attrRows.length)return;
   const agg={};
-  ATTR_DATA.forEach(r=>{if(!agg[r.country])agg[r.country]={rev:0,spend:0,b:0};agg[r.country].rev+=r.revenue;agg[r.country].b+=r.bookings;});
+  attrRows.forEach(r=>{if(!agg[r.country])agg[r.country]={rev:0,spend:0,b:0};agg[r.country].rev+=r.revenue;agg[r.country].b+=r.bookings;});
   const rows=campGetRows();
   const tSp=rows.reduce((a,r)=>a+r.spend,0);
   const tBk=Object.values(agg).reduce((a,v)=>a+v.b,0);
@@ -724,16 +743,17 @@ function campDrawGeo(){
     if(leg)leg.innerHTML=entries.map((c,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${colors[i]}"></span>${c}<span class="dl-val">${fmt(vals[i])}</span></div>`).join('');
   }
   mkDonut('geoSpendChart',bySpend.map(([c])=>c),bySpend.map(([,v])=>v.spend),DC,'geo-spend-legend',f);
-  mkDonut('geoRevChart',byRev.map(([c])=>c),byRev.map(([,v])=>v.rev),['#1a1a2e','#2d3a5e','#3d4f7c','#4d6499','#6a7fb5','#8fa0cc','#b0bfe0'],'geo-rev-legend',f);
+  mkDonut('geoRevChart',byRev.map(([c])=>c),byRev.map(([,v])=>v.rev),DC,'geo-rev-legend',f);
 }
 
 function campRenderGeo(){
-  if(!ATTR_DATA.length)return;
+  const attrRows=campGetAttrRows();
+  if(!attrRows.length)return;
   const agg={};
-  ATTR_DATA.forEach(r=>{if(!agg[r.country])agg[r.country]={rev:0,b:0,abv:0,blt_sum:0,nights_sum:0,tier:r.tier};agg[r.country].rev+=r.revenue;agg[r.country].b+=r.bookings;agg[r.country].blt_sum+=r.blt*r.bookings;agg[r.country].nights_sum+=r.avg_nights*r.bookings;});
+  attrRows.forEach(r=>{if(!agg[r.country])agg[r.country]={rev:0,b:0,abv:0,blt_sum:0,nights_sum:0,tier:r.tier};agg[r.country].rev+=r.revenue;agg[r.country].b+=r.bookings;agg[r.country].blt_sum+=r.blt*r.bookings;agg[r.country].nights_sum+=r.avg_nights*r.bookings;});
   Object.values(agg).forEach(v=>{v.abv=v.b>0?v.rev/v.b:0;v.avgN=v.b>0?v.nights_sum/v.b:0;v.avgBlt=v.b>0?v.blt_sum/v.b:0;});
-  const t1Set=new Set(ATTR_DATA.filter(r=>String(r.tier).trim()==='1').map(r=>r.country));
-  const t2Set=new Set(ATTR_DATA.filter(r=>String(r.tier).trim()==='2').map(r=>r.country));
+  const t1Set=new Set(attrRows.filter(r=>String(r.tier).trim()==='1').map(r=>r.country));
+  const t2Set=new Set(attrRows.filter(r=>String(r.tier).trim()==='2').map(r=>r.country));
   const all=Object.entries(agg).sort((a,b)=>b[1].rev-a[1].rev);
   const t1=all.filter(([c])=>t1Set.has(c));
   const t2=all.filter(([c])=>t2Set.has(c));
@@ -753,38 +773,42 @@ function campRenderGeo(){
   const byRev=all.slice(0,7);
   const byAbv=[...all].sort((a,b)=>b[1].abv-a[1].abv).slice(0,7);
   const byBk=[...all].sort((a,b)=>b[1].b-a[1].b).slice(0,7);
-  function mkDonutS(id,labs,vals,colors,legId){
+  function mkDonutS(id,labs,vals,colors,legId,fmt){
+    fmt=fmt||f;
     const el=document.getElementById(id);if(!el)return;if(el._c)el._c.destroy();
-    el._c=new Chart(el,{type:'doughnut',data:{labels:labs,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${f(ctx.raw)}`}}}}});
+    el._c=new Chart(el,{type:'doughnut',data:{labels:labs,datasets:[{data:vals,backgroundColor:colors,borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.raw)}`}}}}});
     const leg=document.getElementById(legId);
-    if(leg)leg.innerHTML=labs.map((l,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${colors[i]}"></span>${l}<span class="dl-val">${f(vals[i])}</span></div>`).join('');
+    if(leg)leg.innerHTML=labs.map((l,i)=>`<div class="dl-item"><span class="dl-dot" style="background:${colors[i]}"></span>${l}<span class="dl-val">${fmt(vals[i])}</span></div>`).join('');
   }
   function mkBarS(id,labs,vals,color,tipFmt,axFmt){
     const el=document.getElementById(id);if(!el)return;if(el._c)el._c.destroy();
     el._c=new Chart(el,{type:'bar',data:{labels:labs,datasets:[{data:vals,backgroundColor:color,borderRadius:5,barPercentage:0.6,categoryPercentage:0.75}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${tipFmt(ctx.raw)}`}}},scales:{x:{ticks:{font:{size:9},maxRotation:35},grid:{display:false}},y:{ticks:{font:{size:9},callback:axFmt},grid:{color:'rgba(0,0,0,.04)'}}}}});
   }
+  const ABV_C=['#C4982A','#d4a83a','#e4b84a','#f0c85a','#f5d47a','#f8dc96','#fae4b0'];
+  const BK_C =['#1a1a2e','#2d3a5e','#3d4f7c','#4d6499','#6a7fb5','#8fa0cc','#b0bfe0'];
   mkDonutS('geoDonut',byRev.map(([c])=>c),byRev.map(([,v])=>v.rev),DC.slice(0,7),'geo-donut-legend');
-  mkBarS('abvChart',byAbv.map(([c])=>c),byAbv.map(([,v])=>v.abv),'#C4982A',v=>f(v),fax);
-  mkBarS('bookingChart',byBk.map(([c])=>c),byBk.map(([,v])=>v.b),'#1a1a2e',v=>v+' bookings',v=>v);
+  mkDonutS('abvChart',byAbv.map(([c])=>c),byAbv.map(([,v])=>v.abv),ABV_C,'geo-abv-legend');
+  mkDonutS('bookingChart',byBk.map(([c])=>c),byBk.map(([,v])=>v.b),BK_C,'geo-bk-legend',v=>v+' bkgs');
 }
 
 function campRenderHeatmaps(){
-  if(!ATTR_DATA.length)return;
-  const ciKeys=[...new Set(ATTR_DATA.map(r=>`${r.ci_month}-${r.ci_year}`))].sort((a,b)=>{const[am,ay]=a.split('-').map(Number);const[bm,by]=b.split('-').map(Number);return ay!==by?ay-by:am-bm;});
+  const attrRows=campGetAttrRows();
+  if(!attrRows.length)return;
+  const ciKeys=[...new Set(attrRows.map(r=>`${r.ci_month}-${r.ci_year}`))].sort((a,b)=>{const[am,ay]=a.split('-').map(Number);const[bm,by]=b.split('-').map(Number);return ay!==by?ay-by:am-bm;});
   const ciLabels=ciKeys.map(k=>{const[m,y]=k.split('-').map(Number);return MON_NAMES[m]+' '+(y+'').slice(2);});
-  const countries=[...new Set(ATTR_DATA.map(r=>r.country))].sort();
+  const countries=[...new Set(attrRows.map(r=>r.country))].sort();
   const headHtml='<th>Country</th>'+ciLabels.map(l=>`<th>${l}</th>`).join('');
   document.getElementById('rev-heat-head').innerHTML=headHtml;
   document.getElementById('rn-heat-head').innerHTML=headHtml;
-  const maxRev=Math.max(...ATTR_DATA.map(r=>r.revenue),1);
-  const maxRN=Math.max(...ATTR_DATA.map(r=>r.room_nights),1);
+  const maxRev=Math.max(...attrRows.map(r=>r.revenue),1);
+  const maxRN=Math.max(...attrRows.map(r=>r.room_nights),1);
   function hCell(val,mx,isRev){if(!val)return'<td>—</td>';const p=val/mx;const cls=p>=0.55?'heat-hi':p>=0.25?'heat-md':'heat-lo';const d=isRev?Math.round(val/1000)+'k':val;return`<td class="${cls}"><span>${d}</span></td>`;}
   document.getElementById('rev-heatmap-tbody').innerHTML=countries.map(c=>{
-    const cells=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);const v=ATTR_DATA.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.revenue,0);return hCell(v,maxRev,true);}).join('');
+    const cells=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);const v=attrRows.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.revenue,0);return hCell(v,maxRev,true);}).join('');
     return`<tr><td>${c}</td>${cells}</tr>`;
   }).join('');
   document.getElementById('rn-heatmap-tbody').innerHTML=countries.map(c=>{
-    const cells=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);const v=ATTR_DATA.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.room_nights,0);return hCell(v,maxRN,false);}).join('');
+    const cells=ciKeys.map(k=>{const[mo,yr]=k.split('-').map(Number);const v=attrRows.filter(r=>r.country===c&&r.ci_month===mo&&r.ci_year===yr).reduce((a,r)=>a+r.room_nights,0);return hCell(v,maxRN,false);}).join('');
     return`<tr><td>${c}</td>${cells}</tr>`;
   }).join('');
 }

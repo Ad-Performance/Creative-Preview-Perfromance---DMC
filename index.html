@@ -75,6 +75,11 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
 #lb-x{position:absolute;top:20px;right:24px;color:#fff;font-size:28px;cursor:pointer}
 .state-box{text-align:center;padding:80px 20px;color:#ccc}
 .state-box .icon{font-size:48px;margin-bottom:12px}
+.card.inactive{opacity:.65}
+.card.inactive{opacity:.65}
+.status-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;margin-bottom:5px;letter-spacing:.4px;text-transform:uppercase}
+.status-badge.active{background:#d1fae5;color:#065f46}
+.status-badge.inactive{background:#fee2e2;color:#991b1b}
 .err-box{background:#fff0f0;border:1.5px solid #ffc0c0;border-radius:12px;padding:20px 24px;margin-bottom:20px;font-size:13px;color:#c00;line-height:1.8}
 .err-box b{display:block;font-size:15px;margin-bottom:8px}
 
@@ -112,6 +117,11 @@ body{font-family:'Inter',sans-serif;background:#f7f5f2;color:#1a1a2e;min-height:
       <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
     </select>
     <select id="fc" onchange="render()"><option value="">All Channels</option></select>
+    <select id="fs" onchange="render()">
+      <option value="">All Status</option>
+      <option value="active">🟢 Active</option>
+      <option value="inactive">🔴 Inactive / Paused</option>
+    </select>
     <span class="count-badge" id="cnt"></span>
     <button class="btn btn-reload" onclick="loadData()">↻ Refresh</button>
     <button class="btn btn-dark" onclick="exportPDF()">📄 Export PDF</button>
@@ -189,10 +199,14 @@ function filtered(){
   const y=document.getElementById("fy").value;
   const m=document.getElementById("fm").value;
   const c=document.getElementById("fc").value;
+  const st=document.getElementById("fs").value;
   return DATA.filter(d=>{
     if(y&&d.Year!==y)return false;
     if(m&&d.Month!==m)return false;
     if(c&&d.Channel!==c)return false;
+    const isPaused=(d["Status / Note"]||"").toLowerCase().includes("pause");
+    if(st==="active"&&isPaused)return false;
+    if(st==="inactive"&&!isPaused)return false;
     if(s&&!(d["Creative Name"]||"").toLowerCase().includes(s)&&!(d["Campaign Group"]||"").toLowerCase().includes(s))return false;
     return true;
   });
@@ -233,11 +247,13 @@ function renderCard(d){
   const ctr=d["CTR (%)"]||"";
   const t=thumb(d["Drive Link"]||"");
   const note=d["Status / Note"]||"";
+  const isPaused=note.toLowerCase().includes("pause");
   const isTop=parseFloat(ctr.replace("%",""))>=5;
   const chColor=CH[d.Channel]||"#888";
   const others=[["CPC",d["CPC (฿)"]],["CPM",d["CPM (฿)"]],["Imp.",d.Impressions],["Spend",d["Spend (฿)"]]].filter(([,v])=>v).slice(0,4)
     .map(([k,v])=>`<div class="kpi-chip"><span class="kpi-chip-lbl">${k}</span><span class="kpi-chip-val">${v}</span></div>`).join("");
-  return `<div class="card${isTop?" top":""}">
+  const statusBadge=`<span class="status-badge ${isPaused?"inactive":"active"}">${isPaused?"⏸ Inactive":"▶ Active"}</span>`;
+  return `<div class="card${isTop?" top":""}${isPaused?" inactive":""}">
     <div class="card-img" onclick="openLB('${t}')">
       <div class="placeholder"><div class="spinner"></div></div>
       ${t?`<img data-src="${t}" alt="${d["Creative Name"]}" onload="this.classList.add('ok');this.previousElementSibling.style.display='none'" onerror="this.style.display='none'">`:""}
@@ -245,10 +261,11 @@ function renderCard(d){
       <div class="zoom-hint">🔍</div>
     </div>
     <div class="card-body">
+      ${statusBadge}
       <div class="card-name">${d["Creative Name"]||"—"}</div>
       ${ctr?`<div class="primary-kpi" style="background:${ctrBg(ctr)}"><span class="kpi-label">CTR</span><span class="kpi-value">${ctr}</span></div>`:""}
       ${others?`<div class="other-kpis">${others}</div>`:""}
-      ${note?`<div class="card-note ${note.toLowerCase().includes("pause")?"bad":"ok2"}">${note}</div>`:""}
+      ${note?`<div class="card-note ${isPaused?"bad":"ok2"}">${note}</div>`:""}
     </div>
   </div>`;
 }
